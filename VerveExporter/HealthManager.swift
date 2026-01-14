@@ -9,6 +9,12 @@ import Foundation
 import HealthKit
 import CoreLocation
 
+// Helper to hold your backend schema
+struct VerveActivityCategory {
+    let type: String
+    let subType: String?
+}
+
 @Observable
 class HealthManager {
     let healthStore = HKHealthStore()
@@ -148,11 +154,15 @@ class HealthManager {
             cadence: nil
         )
         
+        // --- Map Activity Types ---
+        let mapping = mapToVerveActivity(workout: workout)
+        let displayName = workout.workoutActivityType.name
+        
         let verveProps = VerveProperties(
-            name: workout.workoutActivityType.name,
+            name: displayName,
             description: nil,
-            activityType: workout.workoutActivityType.name,
-            activitySubType: nil,
+            activityType: mapping.type,
+            activitySubType: mapping.subType,
             startTime: isoFormatter.string(from: workout.startDate),
             durationSeconds: workout.duration,
             movingDistanceSeconds: workout.duration,
@@ -171,16 +181,106 @@ class HealthManager {
         
         let data = try encoder.encode(root)
         
+        // --- Filename Generation ---
         let fileDateFormatter = DateFormatter()
         fileDateFormatter.dateFormat = "yyyy-MM-dd_HH-mm"
         let dateString = fileDateFormatter.string(from: workout.startDate)
-        let cleanType = workout.workoutActivityType.name.replacingOccurrences(of: " ", with: "_")
-        let fileName = "\(dateString)_\(cleanType).json"
+        
+        // Concatenate Type and SubType (if present)
+        var fileNameType = mapping.type
+        if let sub = mapping.subType {
+            fileNameType += " \(sub)"
+        }
+        
+        // Replace spaces with underscores
+        let safeType = fileNameType.replacingOccurrences(of: " ", with: "_")
+        let fileName = "\(dateString)_\(safeType).json"
         
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         try data.write(to: tempURL)
         
         return tempURL
+    }
+    
+    
+    private func mapToVerveActivity(workout: HKWorkout) -> VerveActivityCategory {
+        // Detect Indoor status via Metadata
+        let isIndoor = (workout.metadata?[HKMetadataKeyIndoorWorkout] as? Bool) ?? false
+        
+        switch workout.workoutActivityType {
+            
+            // --- CYCLING ---
+        case .cycling:
+            if isIndoor {
+                return VerveActivityCategory(type: "Cycling", subType: "Indoor")
+            } else {
+                return VerveActivityCategory(type: "Cycling", subType: nil)
+            }
+            
+            // --- FOOT SPORTS ---
+        case .walking:
+            if isIndoor {
+                return VerveActivityCategory(type: "Foot Sports", subType: "Treadmill")
+            } else {
+                return VerveActivityCategory(type: "Foot Sports", subType: "Walk")
+            }
+            
+        case .running:
+            if isIndoor {
+                return VerveActivityCategory(type: "Foot Sports", subType: "Treadmill")
+            } else {
+                return VerveActivityCategory(type: "Foot Sports", subType: "Run")
+            }
+            
+        case .hiking:
+            return VerveActivityCategory(type: "Foot Sports", subType: "Hike")
+            
+            // --- WINTER SPORTS ---
+        case .crossCountrySkiing:
+            return VerveActivityCategory(type: "Winter Sports", subType: "Cross-country Skiing")
+        case .downhillSkiing, .snowSports:
+            return VerveActivityCategory(type: "Winter Sports", subType: "Downhill Skiing")
+        case .snowboarding:
+            return VerveActivityCategory(type: "Winter Sports", subType: "Downhill Skiing")
+            
+            // --- SWIMMING ---
+        case .swimming:
+            return VerveActivityCategory(type: "Swimming", subType: isIndoor ? "Indoor" : "Open Water")
+            
+            // --- STRENGTH TRAINING ---
+        case .traditionalStrengthTraining:
+            return VerveActivityCategory(type: "Strength Training", subType: "Weight Training")
+        case .functionalStrengthTraining:
+            return VerveActivityCategory(type: "Strength Training", subType: "Circuit Training")
+        case .crossTraining:
+            return VerveActivityCategory(type: "Strength Training", subType: "CrossFit")
+            
+            // --- INDOOR CARDIO ---
+        case .elliptical:
+            return VerveActivityCategory(type: "Indoor Cardio", subType: "Elliptical")
+        case .stairClimbing:
+            return VerveActivityCategory(type: "Indoor Cardio", subType: "Stair Stepper")
+        case .rowing:
+            return VerveActivityCategory(type: "Indoor Cardio", subType: "Indoor Rowing")
+            
+            // --- FITNESS & FLEXIBILITY ---
+        case .yoga:
+            return VerveActivityCategory(type: "Fitness & Flexibility", subType: "Yoga")
+        case .pilates:
+            return VerveActivityCategory(type: "Fitness & Flexibility", subType: "Pilates")
+        case .highIntensityIntervalTraining:
+            return VerveActivityCategory(type: "Fitness & Flexibility", subType: "HIIT")
+            
+            // --- OTHER ---
+        case .climbing:
+            return VerveActivityCategory(type: "Other", subType: "Climbing")
+        case .skatingSports:
+            return VerveActivityCategory(type: "Other", subType: "Skateboarding")
+            
+            // --- DEFAULTS ---
+        default:
+            return VerveActivityCategory(type: "Other", subType: "Other")
+        }
     }
     
     private func calculateStats(from values: [Double]) -> MetricSummary? {
