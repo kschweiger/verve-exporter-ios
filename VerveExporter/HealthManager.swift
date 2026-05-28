@@ -270,10 +270,10 @@ class HealthManager {
             return VerveActivityCategory(type: "Fitness & Flexibility", subType: "Pilates")
         case .highIntensityIntervalTraining:
             return VerveActivityCategory(type: "Fitness & Flexibility", subType: "HIIT")
-            
-            // --- OTHER ---
+            // --- CLIMBING ---
         case .climbing:
-            return VerveActivityCategory(type: "Other", subType: "Climbing")
+            return VerveActivityCategory(type: "Climbing", subType: nil)
+            // --- OTHER ---
         case .skatingSports:
             return VerveActivityCategory(type: "Other", subType: "Skateboarding")
             

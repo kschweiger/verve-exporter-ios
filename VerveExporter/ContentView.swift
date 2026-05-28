@@ -186,6 +186,7 @@ struct WorkoutRow: View {
         case .rowing: return "figure.rower"
         case .coreTraining: return "figure.core.training"
         case .cooldown: return "figure.cooldown"
+        case .climbing: return "figure.climbing"
         default: return "figure.mixed.cardio"
         }
     }
@@ -246,6 +247,7 @@ extension HKWorkoutActivityType {
         case .coreTraining: return "Core"
         case .cooldown: return "Cooldown"
         case .highIntensityIntervalTraining: return "HIIT"
+        case .climbing: return "Climbing"
             
             // Fallback for the other ~70 types
         default:
