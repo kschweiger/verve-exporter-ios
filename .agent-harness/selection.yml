@@ -1,0 +1,42 @@
+team: generic
+resolved_teams:
+  - generic
+detected_runtimes: []
+planned_runtimes: []
+applied_layers:
+  - core
+  - teams/generic
+created_files:
+  - Makefile
+  - AGENTS.md
+  - ARCHITECTURE.md
+  - .agent-harness/manifest.json
+  - .agent-harness/selection.yml
+  - docs/README.md
+  - docs/PRINCIPLES.md
+  - docs/TESTING.md
+  - docs/SECURITY.md
+  - docs/QUALITY_SCORE.md
+  - docs/DECISIONS.md
+  - docs/product-specs/README.md
+  - docs/product-specs/verve-geojson-format.md
+  - docs/design-docs/README.md
+  - docs/exec-plans/README.md
+  - docs/exec-plans/active/.gitkeep
+  - docs/exec-plans/completed/.gitkeep
+  - docs/exec-plans/tech-debt-tracker.md
+  - docs/references/README.md
+  - docs/references/healthkit.md
+modified_files:
+  - .gitignore
+skipped_optional_files: []
+unknowns:
+  - area: testing
+    question: Exact CI-grade build/test destination for this HealthKit iOS app.
+    follow_up: Confirm a real-device or simulator destination that is safe to use for repeatable validation.
+  - area: testing
+    question: Fixture strategy for export tests without using personal workouts.
+    follow_up: Add sanitized HealthKit-adjacent fixtures or pure Swift unit tests for Verve JSON encoding.
+  - area: healthkit
+    question: Whether future exports should include cadence, cycling power, speed, and elevation gain from HealthKit quantity samples.
+    follow_up: Confirm desired metric coverage and add HealthKit query notes before implementation.

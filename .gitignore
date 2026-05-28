@@ -62,3 +62,6 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 digest.txt
+
+.env.agent.local
+.agent-local/

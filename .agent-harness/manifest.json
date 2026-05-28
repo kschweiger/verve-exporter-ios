@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "harness_version": "v0.1",
+  "bootstrap_url": "file:///Users/korbinian/harnesshub/BOOTSTRAP.md",
+  "source_ref": "feature/bun-vue-runtime",
+  "source_commit": "304e2030860f44ff48f91cc8a75638e8f2352a16",
+  "bootstrapped_at": "2026-05-28T09:55:51Z"
+}
