@@ -57,15 +57,7 @@ struct DebugView: View {
     
     private func generateAndLoad() async {
         do {
-            // 1. Re-use your existing logic to generate the file
-            let url = try await healthManager.generateGeoJSON(for: workout)
-            
-            // 2. Read the file back into memory
-            let data = try Data(contentsOf: url)
-            let string = String(data: data, encoding: .utf8) ?? "Encoding Error"
-            
-            // 3. Update UI
-            self.jsonContent = string
+            self.jsonContent = try await healthManager.generateDebugJSON(for: workout)
             self.isLoading = false
             
         } catch {

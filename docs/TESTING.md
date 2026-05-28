@@ -21,6 +21,14 @@ rg <pattern>
 
 The signing-disabled generic iOS build command is useful for local compiler validation when provisioning is unavailable. During bootstrap it progressed to Swift compilation but failed inside this sandbox because `swift-plugin-server` could not load SwiftUI/Observation macros and emitted `sandbox-exec: Operation not permitted`. Re-run outside the restricted sandbox before treating that as a source failure.
 
+If the standard sandboxed build fails only because Swift macro/plugin subprocesses cannot run, this local compiler workaround can typecheck the app without changing project settings:
+
+```bash
+xcodebuild -project VerveExporter.xcodeproj -scheme VerveExporter -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/VerveExporter-DerivedData CODE_SIGNING_ALLOWED=NO OTHER_SWIFT_FLAGS='-disable-sandbox' build
+```
+
+Use the workaround only as a validation command, not as a committed build setting.
+
 ## Test Commands
 
 No XCTest target exists in the repository at bootstrap. Add a test target before relying on automated unit tests.
