@@ -22,7 +22,11 @@ Completion criteria
 
 ## Current Active Plans
 
-- `active/2026-05-28-implement-swim-metadata-exporter.md`: Implement source-neutral swimming lap, set, stroke, pool length, and SWOLF metadata export in the iOS exporter.
+- None.
+
+## Completed Plans
+
+- `completed/2026-05-28-implement-swim-metadata-exporter.md`: Implemented source-neutral swimming lap, set, stroke, pool length, and SWOLF metadata export in the iOS exporter.
 
 ## Directories
 

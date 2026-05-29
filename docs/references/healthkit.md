@@ -22,6 +22,7 @@ Current code in `VerveExporter/HealthManager.swift` uses:
 - `HKWorkout.statistics(for:)` for active energy and available distance totals.
 - `HKMetadataKeyIndoorWorkout` to distinguish indoor and outdoor activity mappings.
 - The debug JSON sheet shows a swimming diagnostic payload for selected swim workouts, including workout events, activity-level configuration, and swim statistics. This diagnostic payload is not part of the Verve export schema.
+- Normal Verve GeoJSON export maps swimming laps, sets, stroke style, pool length, stroke count, and SWOLF values into source-neutral `properties.metadata.swimming` fields.
 
 ## Apple Documentation Links To Start From
 
@@ -145,6 +146,15 @@ Verified pool-swim findings from a real device on 2026-05-28:
 - `HKMetadataKeyIndoorWorkout` was not sufficient for swimming subtype mapping in the observed pool swim. Use `HKMetadataKeySwimmingLocationType` or `HKWorkoutActivity.workoutConfiguration.swimmingLocationType` to distinguish pool from open water.
 - No lane-number-like field was observed. HealthKit exposes pool length and lap events, not a lane identifier.
 
+Verified exporter checkpoint from a real device on 2026-05-29:
+
+- The first normal Verve GeoJSON swim export included `properties.metadata.swimming`.
+- The observed export contained 10 lap objects, 8 set objects, `poolLengthMeters: 50`, and `totalStrokeCount: 337`, matching the diagnostic probe for the same workout.
+- Lap objects contained source-neutral `strokeStyle`, `strokeCount`, and `swolf` fields derived from HealthKit lap event metadata.
+- Set objects contained overlapping lap indexes, lap counts, distances, inferred stroke style, inferred stroke count, and average SWOLF.
+- No swimming location field was emitted inside `metadata.swimming`.
+- The first checkpoint still exported the pool swim as `activitySubType: "Open Water"` because subtype mapping still used `HKMetadataKeyIndoorWorkout`; subsequent implementation should use swimming location type for pool vs open water.
+
 Recommended retrieval order for a selected swimming workout:
 
 1. Read workout-level swim metadata: lap length, swimming location type, SWOLF, distance swimming, and swimming stroke count statistics.
@@ -154,14 +164,26 @@ Recommended retrieval order for a selected swimming workout:
 5. Use `HKStatisticsQuery`/statistics descriptors for `distanceSwimming` and `swimmingStrokeCount` over lap or segment intervals when exact per-interval quantities are needed. Apple may condense older first-party workout samples, so statistics APIs are safer for totals than assuming one simple `HKQuantitySample` per interval.
 6. Use `HKQuantitySeriesSampleQuery` only if the app needs the detailed backing values from condensed samples.
 
-Real-device questions to answer before implementation:
+Implemented export mapping:
+
+- `HKWorkoutActivity.workoutConfiguration.lapLength` or `HKMetadataKeyLapLength` -> `metadata.swimming.poolLengthMeters`
+- `HKQuantityTypeIdentifierSwimmingStrokeCount` workout statistic -> `metadata.swimming.totalStrokeCount`
+- `HKWorkoutEventType.lap` -> `metadata.swimming.laps`
+- `HKWorkoutEventType.segment` -> `metadata.swimming.sets`
+- `HKMetadataKeySwimmingStrokeStyle` on lap events -> lap `strokeStyle`
+- `HKMetadataKeySWOLFScore` on lap events -> lap `swolf`
+- `HKMetadataKeySWOLFScore` on segment events -> set `averageSwolf`
+- Lap `strokeCount` -> inferred from `swolf - durationSeconds` when non-negative
+- Set `strokeStyle`, `strokeCount`, and `distanceMeters` -> inferred from overlapping laps
+- `HKWorkoutActivity.workoutConfiguration.swimmingLocationType` or `HKMetadataKeySwimmingLocationType` -> Verve `activitySubType`, not `metadata.swimming`
+
+Real-device questions to continue testing:
 
 - Does Fitness "Auto Sets" always map to `HKWorkoutEventTypeSegment`, or can it vary by watchOS version and workout shape?
 - Do segment events ever carry `HKMetadataKeySwimmingStrokeStyle`, or should segment style always be inferred from overlapping laps?
 - Is stroke style present on every lap across several workouts, or only when Apple can classify it confidently?
 - What does an open-water swim contain: route only, distance/strokes, lap events, segment events, or no stroke-style metadata?
 - Can interval statistics recover per-lap and per-segment stroke counts from HealthKit, or should stroke counts be inferred from SWOLF and duration when HealthKit does not expose interval statistics directly?
-- Should the Verve file preserve raw laps, segment summaries, or both?
 
 ## Manual Testing Reality
 

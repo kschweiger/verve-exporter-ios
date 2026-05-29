@@ -185,9 +185,9 @@ If the user cannot run the final device check in the same session, leave this pl
 
 - Modify `VerveExporter/GeoJSON.swift`
 
-- [ ] Add an optional `metadata: VerveMetadata?` property to `VerveProperties`.
-- [ ] Add `metadata` to `VerveProperties.CodingKeys`.
-- [ ] Add these `Codable` structs near the existing GeoJSON model structs:
+- [x] Add an optional `metadata: VerveMetadata?` property to `VerveProperties`.
+- [x] Add `metadata` to `VerveProperties.CodingKeys`.
+- [x] Add these `Codable` structs near the existing GeoJSON model structs:
 
 ```swift
 struct VerveMetadata: Codable {
@@ -234,8 +234,8 @@ struct SwimSetMetadata: Codable {
 }
 ```
 
-- [ ] Keep all swim fields optional except `schemaVersion` and object `index` fields.
-- [ ] Use the existing encoder behavior so nil fields are omitted when possible by Swift optional encoding.
+- [x] Keep all swim fields optional except `schemaVersion` and object `index` fields.
+- [x] Use the existing encoder behavior so nil fields are omitted when possible by Swift optional encoding.
 
 ### Task 2: Build lap metadata from HealthKit lap events
 
@@ -243,12 +243,12 @@ struct SwimSetMetadata: Codable {
 
 - Modify `VerveExporter/HealthManager.swift`
 
-- [ ] Add a private helper `buildSwimmingMetadata(for workout: HKWorkout, isoFormatter: ISO8601DateFormatter) -> SwimmingMetadata?`.
-- [ ] Return `nil` when `workout.workoutActivityType != .swimming`.
-- [ ] Read pool length from `workoutActivities.first?.workoutConfiguration.lapLength` first, then fall back to `HKMetadataKeyLapLength`.
-- [ ] Read total stroke count from `.swimmingStrokeCount` workout statistics.
-- [ ] Sort `workout.workoutEvents` with `type == .lap` by start date.
-- [ ] Convert each lap event into `SwimLapMetadata`:
+- [x] Add a private helper `buildSwimmingMetadata(for workout: HKWorkout, isoFormatter: ISO8601DateFormatter) -> SwimmingMetadata?`.
+- [x] Return `nil` when `workout.workoutActivityType != .swimming`.
+- [x] Read pool length from `workoutActivities.first?.workoutConfiguration.lapLength` first, then fall back to `HKMetadataKeyLapLength`.
+- [x] Read total stroke count from `.swimmingStrokeCount` workout statistics.
+- [x] Sort `workout.workoutEvents` with `type == .lap` by start date.
+- [x] Convert each lap event into `SwimLapMetadata`:
   - `index`: 1-based sorted lap index.
   - `startTime` and `endTime`: ISO-8601 event boundaries.
   - `durationSeconds`: `event.endDate.timeIntervalSince(event.dateInterval.start)`.
@@ -257,8 +257,8 @@ struct SwimSetMetadata: Codable {
   - `swolf`: numeric value from `HKMetadataKeySWOLFScore`.
   - `strokeCount`: `round(swolf - durationSeconds)` only when both values exist and the result is non-negative.
   - `restAfterSeconds`: next lap start minus this lap end when positive.
-- [ ] Reuse the existing diagnostic helpers for SWOLF and stroke style conversion when they already express the desired behavior.
-- [ ] Emit `unknown` only when HealthKit has a style key that cannot be mapped; omit `strokeStyle` when there is no style signal.
+- [x] Reuse the existing diagnostic helpers for SWOLF and stroke style conversion when they already express the desired behavior.
+- [x] Emit `unknown` only when HealthKit has a style key that cannot be mapped; omit `strokeStyle` when there is no style signal.
 
 ### Task 3: Build set metadata from HealthKit segment events
 
@@ -266,9 +266,9 @@ struct SwimSetMetadata: Codable {
 
 - Modify `VerveExporter/HealthManager.swift`
 
-- [ ] Sort `workout.workoutEvents` with `type == .segment` by start date.
-- [ ] For each segment, find laps whose time interval overlaps the segment interval.
-- [ ] Convert each segment into `SwimSetMetadata`:
+- [x] Sort `workout.workoutEvents` with `type == .segment` by start date.
+- [x] For each segment, find laps whose time interval overlaps the segment interval.
+- [x] Convert each segment into `SwimSetMetadata`:
   - `index`: 1-based sorted set index.
   - `startTime`, `endTime`, `durationSeconds`: segment boundaries.
   - `lapStartIndex`: first overlapping lap index when laps overlap.
@@ -279,7 +279,7 @@ struct SwimSetMetadata: Codable {
   - `strokeCount`: sum of overlapping lap stroke counts when every included lap has a count.
   - `averageSwolf`: segment `HKSWOLFScore` when present, otherwise average of overlapping lap SWOLF values.
   - `restAfterSeconds`: next segment start minus this segment end when positive.
-- [ ] Keep set inference deterministic by deriving every set from the already sorted lap objects and their indexes.
+- [x] Keep set inference deterministic by deriving every set from the already sorted lap objects and their indexes.
 
 ### Task 4: Build workout-level swimming summary fields
 
@@ -287,12 +287,12 @@ struct SwimSetMetadata: Codable {
 
 - Modify `VerveExporter/HealthManager.swift`
 
-- [ ] Set `schemaVersion` to `1`.
-- [ ] Set `lapCount` to the number of exported lap objects when laps are present.
-- [ ] Set `setCount` to the number of exported set objects when sets are present.
-- [ ] Set `averageSwolf` to the arithmetic average of lap `swolf` values when at least one lap SWOLF exists.
-- [ ] Set `strokeStyles` from lap and set styles, excluding `unknown` unless all available styles are `unknown`.
-- [ ] Return `nil` from `buildSwimmingMetadata` only when the workout is not swimming. For swim workouts with partial data, return a sparse `SwimmingMetadata(schemaVersion: 1, ...)`.
+- [x] Set `schemaVersion` to `1`.
+- [x] Set `lapCount` to the number of exported lap objects when laps are present.
+- [x] Set `setCount` to the number of exported set objects when sets are present.
+- [x] Set `averageSwolf` to the arithmetic average of lap `swolf` values when at least one lap SWOLF exists.
+- [x] Set `strokeStyles` from lap and set styles, excluding `unknown` unless all available styles are `unknown`.
+- [x] Return `nil` from `buildSwimmingMetadata` only when the workout is not swimming. For swim workouts with partial data, return a sparse `SwimmingMetadata(schemaVersion: 1, ...)`.
 
 ### Task 5: Attach swim metadata to normal Verve exports
 
@@ -300,10 +300,10 @@ struct SwimSetMetadata: Codable {
 
 - Modify `VerveExporter/HealthManager.swift`
 
-- [ ] In `generateGeoJSON(for:)`, build `let swimmingMetadata = buildSwimmingMetadata(for: workout, isoFormatter: formatter)` after formatter setup.
-- [ ] Pass `metadata: VerveMetadata(swimming: swimmingMetadata)` into `VerveProperties` only when `swimmingMetadata` is non-nil.
-- [ ] Confirm non-swim exports still encode no `metadata` property.
-- [ ] Keep `generateDebugJSON(for:)` returning the diagnostic swim JSON for `.swimming`; the debug sheet remains the fallback investigation tool.
+- [x] In `generateGeoJSON(for:)`, build `let swimmingMetadata = buildSwimmingMetadata(for: workout, isoFormatter: formatter)` after formatter setup.
+- [x] Pass `metadata: VerveMetadata(swimming: swimmingMetadata)` into `VerveProperties` only when `swimmingMetadata` is non-nil.
+- [x] Confirm non-swim exports still encode no `metadata` property.
+- [x] Keep `generateDebugJSON(for:)` returning the diagnostic swim JSON for `.swimming`; the debug sheet remains the fallback investigation tool.
 
 ### Task 6: Mandatory stop for first phone-tested export
 
@@ -311,12 +311,12 @@ struct SwimSetMetadata: Codable {
 
 - Modify `docs/exec-plans/active/2026-05-28-implement-swim-metadata-exporter.md`
 
-- [ ] Run the generic iOS build command from this plan.
-- [ ] Stop implementation and ask the user to run the exporter on their phone using the known pool swim.
-- [ ] Ask for the sanitized Checkpoint A snippet described above.
-- [ ] Compare the user's phone output against the planned schema and derivation rules.
-- [ ] Update this plan immediately if real HealthKit output contradicts any planned mapping.
-- [ ] Do not proceed to Task 7 until Checkpoint A is resolved or explicitly marked blocked.
+- [x] Run the generic iOS build command from this plan.
+- [x] Stop implementation and ask the user to run the exporter on their phone using the known pool swim.
+- [x] Ask for the sanitized Checkpoint A snippet described above.
+- [x] Compare the user's phone output against the planned schema and derivation rules.
+- [x] Update this plan immediately if real HealthKit output contradicts any planned mapping.
+- [x] Do not proceed to Task 7 until Checkpoint A is resolved or explicitly marked blocked.
 
 ### Task 7: Correct swimming activity subtype mapping in the exporter
 
@@ -324,13 +324,13 @@ struct SwimSetMetadata: Codable {
 
 - Modify `VerveExporter/HealthManager.swift`
 
-- [ ] Update `mapToVerveActivity(workout:)` for `.swimming` to use HealthKit swimming location type:
+- [x] Update `mapToVerveActivity(workout:)` for `.swimming` to use HealthKit swimming location type:
   - Pool + `HKMetadataKeyIndoorWorkout == true`: `("Swimming", "Indoor")`.
   - Pool + `HKMetadataKeyIndoorWorkout == false` or missing: `("Swimming", "Outdoor Pool")`.
   - Open water: `("Swimming", "Open Water")`.
   - Unknown location: preserve the current indoor metadata fallback behavior.
-- [ ] Do not add location type to `metadata.swimming`.
-- [ ] Add a short code comment only if the HealthKit fallback logic is not obvious from the helper names.
+- [x] Do not add location type to `metadata.swimming`.
+- [x] Add a short code comment only if the HealthKit fallback logic is not obvious from the helper names.
 
 ### Task 8: Update format and HealthKit docs
 
@@ -340,11 +340,11 @@ struct SwimSetMetadata: Codable {
 - Modify `docs/references/healthkit.md`
 - Optionally modify `docs/DECISIONS.md` if implementation reveals a durable decision not already captured by the design doc.
 
-- [ ] Add a `metadata.swimming` subsection to the Verve GeoJSON product spec with field definitions matching the design doc.
-- [ ] Update "Current iOS Export Behavior" to say swim metadata export is implemented.
-- [ ] Remove or revise the "No metadata export is implemented" known-gap line so it remains accurate.
-- [ ] Add HealthKit mapping notes for lap events, segment events, SWOLF, stroke style, lap length, and aggregate swim stroke count.
-- [ ] Record that real-device validation is still required for Apple HealthKit swim behavior.
+- [x] Add a `metadata.swimming` subsection to the Verve GeoJSON product spec with field definitions matching the design doc.
+- [x] Update "Current iOS Export Behavior" to say swim metadata export is implemented.
+- [x] Remove or revise the "No metadata export is implemented" known-gap line so it remains accurate.
+- [x] Add HealthKit mapping notes for lap events, segment events, SWOLF, stroke style, lap length, and aggregate swim stroke count.
+- [x] Record that real-device validation is still required for Apple HealthKit swim behavior.
 
 ### Task 9: Final phone-tested export review
 
@@ -352,10 +352,10 @@ struct SwimSetMetadata: Codable {
 
 - Modify `docs/exec-plans/active/2026-05-28-implement-swim-metadata-exporter.md`
 
-- [ ] Stop implementation and ask the user to run the final device checks from Checkpoint B.
-- [ ] Record the user's final device-test result in the progress log.
-- [ ] If the final device result shows schema or mapping drift, update the plan and return to the relevant implementation task.
-- [ ] If the user cannot run the final device check, keep the plan active and record manual validation as blocked.
+- [x] Stop implementation and ask the user to run the final device checks from Checkpoint B.
+- [x] Record the user's final device-test result in the progress log.
+- [x] If the final device result shows schema or mapping drift, update the plan and return to the relevant implementation task.
+- [x] If the user cannot run the final device check, keep the plan active and record manual validation as blocked.
 
 ### Task 10: Validate and record completion
 
@@ -365,17 +365,24 @@ struct SwimSetMetadata: Codable {
 - Move to `docs/exec-plans/completed/2026-05-28-implement-swim-metadata-exporter.md` after implementation is validated.
 - Modify `docs/exec-plans/README.md` to move the plan entry from active to completed.
 
-- [ ] Run `make validate-docs`.
-- [ ] Run the generic iOS build command from this plan.
-- [ ] Run `git diff --check`.
-- [ ] Run `git status --short` and review changed files.
-- [ ] Confirm Checkpoint A and Checkpoint B are resolved or explicitly recorded as blocked.
-- [ ] Move this plan to `docs/exec-plans/completed/` only after code/docs checks pass and manual checks are either complete or explicitly documented as remaining.
+- [x] Run `make validate-docs`.
+- [x] Run the generic iOS build command from this plan.
+- [x] Run `git diff --check`.
+- [x] Run `git status --short` and review changed files.
+- [x] Confirm Checkpoint A and Checkpoint B are resolved or explicitly recorded as blocked.
+- [x] Move this plan to `docs/exec-plans/completed/` only after code/docs checks pass and manual checks are either complete or explicitly documented as remaining.
 
 ## Progress log
 
 - 2026-05-28: Created exporter implementation plan from the swim metadata design document and the real-device diagnostic JSON result.
 - 2026-05-28: Added mandatory phone-tested iteration checkpoints so the implementation stops after initial export wiring and again before completion.
+- 2026-05-29: Implemented Tasks 1-5 through first swim metadata export wiring. Awaiting compiler validation and Checkpoint A phone-tested JSON before continuing.
+- 2026-05-29: Generic iOS build with `OTHER_SWIFT_FLAGS='-disable-sandbox'` succeeded. Stopping at Checkpoint A for phone-tested swim export JSON.
+- 2026-05-29: Checkpoint A phone export matched swim metadata expectations: 10 laps, 8 sets, 50 m pool length, 337 total strokes, lap/set SWOLF, stroke styles, inferred lap/set stroke counts, and no location field in `metadata.swimming`. The pool swim still exported as `activitySubType: "Open Water"`, so Task 7 updated subtype mapping to use HealthKit swimming location type.
+- 2026-05-29: Updated product and HealthKit docs, then build/docs/whitespace checks passed. Stopping at Checkpoint B for final phone-tested swim and non-swim exports.
+- 2026-05-29: Checkpoint B swim export passed: the tested pool swim now exports `activitySubType: "Outdoor Pool"`, still includes `metadata.swimming`, and does not include a location field inside swim metadata. Non-swim phone export check is still pending.
+- 2026-05-29: Checkpoint B non-swim export passed with a climbing workout. The export has no root `metadata` object, so `metadata.swimming` is absent for non-swim workouts.
+- 2026-05-29: Final validation passed: `make validate-docs`, generic iOS build with `OTHER_SWIFT_FLAGS='-disable-sandbox'`, `git diff --check`, and `git status --short`.
 
 ## Decisions
 
