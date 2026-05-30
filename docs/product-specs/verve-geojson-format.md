@@ -130,7 +130,7 @@ Swim lap fields:
 
 | Field | Type | Required | Unit / meaning |
 | --- | --- | --- | --- |
-| `index` | integer | yes | 1-based lap number within the workout. |
+| `index` | integer | yes | Zero-based lap array index within the workout. |
 | `startTime` | string | no | ISO-8601 lap start time. |
 | `endTime` | string | no | ISO-8601 lap end time. |
 | `durationSeconds` | number | no | Lap duration in seconds. |
@@ -144,12 +144,12 @@ Swim set fields:
 
 | Field | Type | Required | Unit / meaning |
 | --- | --- | --- | --- |
-| `index` | integer | yes | 1-based set number within the workout. |
+| `index` | integer | yes | Zero-based set array index within the workout. |
 | `startTime` | string | no | ISO-8601 set start time. |
 | `endTime` | string | no | ISO-8601 set end time. |
 | `durationSeconds` | number | no | Set duration in seconds. |
-| `lapStartIndex` | integer | no | First included lap index. |
-| `lapEndIndex` | integer | no | Last included lap index. |
+| `lapStartIndex` | integer | no | Zero-based index of the first included lap. |
+| `lapEndIndex` | integer | no | Zero-based index of the last included lap. |
 | `lapCount` | integer | no | Number of laps in the set. |
 | `distanceMeters` | number | no | Set distance in meters. |
 | `strokeStyle` | string | no | Single style if included laps agree, otherwise `mixed`. |

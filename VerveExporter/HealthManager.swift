@@ -479,7 +479,7 @@ class HealthManager {
             }
 
             let metadata = SwimLapMetadata(
-                index: offset + 1,
+                index: offset,
                 startTime: isoFormatter.string(from: event.dateInterval.start),
                 endTime: isoFormatter.string(from: event.dateInterval.end),
                 durationSeconds: event.dateInterval.duration,
@@ -509,7 +509,7 @@ class HealthManager {
             }
 
             return SwimSetMetadata(
-                index: offset + 1,
+                index: offset,
                 startTime: isoFormatter.string(from: event.dateInterval.start),
                 endTime: isoFormatter.string(from: event.dateInterval.end),
                 durationSeconds: event.dateInterval.duration,

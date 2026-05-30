@@ -100,7 +100,7 @@ Use lowercase strings:
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `index` | integer | yes | 1-based lap number within the workout. |
+| `index` | integer | yes | Zero-based lap array index within the workout. |
 | `startTime` | string | no | ISO-8601 lap start time. |
 | `endTime` | string | no | ISO-8601 lap end time. |
 | `durationSeconds` | number | no | Lap duration in seconds. |
@@ -114,7 +114,7 @@ Example:
 
 ```json
 {
-  "index": 1,
+  "index": 0,
   "startTime": "2026-05-27T14:58:06Z",
   "endTime": "2026-05-27T14:59:01Z",
   "durationSeconds": 54.34,
@@ -130,12 +130,12 @@ Example:
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `index` | integer | yes | 1-based set number within the workout. |
+| `index` | integer | yes | Zero-based set array index within the workout. |
 | `startTime` | string | no | ISO-8601 set start time. |
 | `endTime` | string | no | ISO-8601 set end time. |
 | `durationSeconds` | number | no | Set duration in seconds. |
-| `lapStartIndex` | integer | no | First included lap index. |
-| `lapEndIndex` | integer | no | Last included lap index. |
+| `lapStartIndex` | integer | no | Zero-based index of the first included lap. |
+| `lapEndIndex` | integer | no | Zero-based index of the last included lap. |
 | `lapCount` | integer | no | Number of laps in the set. |
 | `distanceMeters` | number | no | Set distance in meters. |
 | `strokeStyle` | string | no | Single style if all included laps agree; `mixed` if styles differ. |
@@ -147,12 +147,12 @@ Example:
 
 ```json
 {
-  "index": 1,
+  "index": 0,
   "startTime": "2026-05-27T14:57:39Z",
   "endTime": "2026-05-27T15:00:02Z",
   "durationSeconds": 143.0,
-  "lapStartIndex": 1,
-  "lapEndIndex": 2,
+  "lapStartIndex": 0,
+  "lapEndIndex": 1,
   "lapCount": 2,
   "distanceMeters": 100,
   "strokeStyle": "breaststroke",
