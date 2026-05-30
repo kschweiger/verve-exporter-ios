@@ -82,6 +82,10 @@ For sets, `averageSwolf` should represent the average of the included lap SWOLF 
 | `laps` | array of swim lap objects | no | Atomic lap records, usually one pool length each. |
 | `sets` | array of swim set objects | no | Higher-level groupings of one or more laps. |
 
+Validity rule: `metadata.swimming` is optional. If present, it must contain `schemaVersion` and at least one meaningful swim data field besides `schemaVersion`. Meaningful fields are `poolLengthMeters`, `totalStrokeCount`, `averageSwolf`, `lapCount`, `setCount`, non-empty `strokeStyles`, non-empty `laps`, or non-empty `sets`.
+
+Exporters should omit `metadata.swimming` when it would contain only `schemaVersion`. Importers may accept and ignore a schema-only object for tolerance, but schema-only swim metadata is not considered meaningful Verve swim metadata.
+
 ### Stroke Style Values
 
 Use lowercase strings:
