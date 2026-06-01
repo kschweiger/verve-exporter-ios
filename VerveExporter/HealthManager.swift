@@ -250,7 +250,9 @@ class HealthManager {
             elevationLoss: nil,
             stats: activityStats,
             equipment: nil,
-            metadata: swimmingMetadata.map { VerveMetadata(swimming: $0) }
+            metadata: swimmingMetadata.map {
+                VerveMetadata(target: "SwimmingMetaData", version: "1.0", data: $0)
+            }
         )
 
         let root = VerveFeature(features: features, properties: verveProps)
@@ -449,8 +451,7 @@ class HealthManager {
         let averageSwolf = average(laps.compactMap(\.swolf))
         let strokeStyles = strokeStyles(from: laps, sets: sets)
 
-        return SwimmingMetadata(
-            schemaVersion: 1,
+        let metadata = SwimmingMetadata(
             poolLengthMeters: poolLength,
             totalStrokeCount: totalStrokeCount,
             averageSwolf: averageSwolf,
@@ -460,6 +461,7 @@ class HealthManager {
             laps: laps.isEmpty ? nil : laps,
             sets: sets.isEmpty ? nil : sets
         )
+        return metadata.hasMeaningfulData ? metadata : nil
     }
 
     private func buildSwimLaps(

@@ -22,7 +22,7 @@ Current code in `VerveExporter/HealthManager.swift` uses:
 - `HKWorkout.statistics(for:)` for active energy and available distance totals.
 - `HKMetadataKeyIndoorWorkout` to distinguish indoor and outdoor activity mappings.
 - The debug JSON sheet shows a swimming diagnostic payload for selected swim workouts, including workout events, activity-level configuration, and swim statistics. This diagnostic payload is not part of the Verve export schema.
-- Normal Verve GeoJSON export maps swimming laps, sets, stroke style, pool length, stroke count, and SWOLF values into source-neutral `properties.metadata.swimming` fields.
+- Normal Verve GeoJSON export maps swimming laps, sets, stroke style, pool length, stroke count, and SWOLF values into the source-neutral `properties.metadata` envelope with `target: "SwimmingMetaData"`.
 
 ## Apple Documentation Links To Start From
 
@@ -148,11 +148,11 @@ Verified pool-swim findings from a real device on 2026-05-28:
 
 Verified exporter checkpoint from a real device on 2026-05-29:
 
-- The first normal Verve GeoJSON swim export included `properties.metadata.swimming`.
+- The first normal Verve GeoJSON swim export included swim metadata. The current export shape uses the canonical `properties.metadata` envelope with `target: "SwimmingMetaData"`, `version: "1.0"`, and swim fields under `data`.
 - The observed export contained 10 lap objects, 8 set objects, `poolLengthMeters: 50`, and `totalStrokeCount: 337`, matching the diagnostic probe for the same workout.
 - Lap objects contained source-neutral `strokeStyle`, `strokeCount`, and `swolf` fields derived from HealthKit lap event metadata.
 - Set objects contained overlapping lap indexes, lap counts, distances, inferred stroke style, inferred stroke count, and average SWOLF.
-- No swimming location field was emitted inside `metadata.swimming`.
+- No swimming location field was emitted inside swim metadata `data`.
 - The first checkpoint still exported the pool swim as `activitySubType: "Open Water"` because subtype mapping still used `HKMetadataKeyIndoorWorkout`; subsequent implementation should use swimming location type for pool vs open water.
 
 Recommended retrieval order for a selected swimming workout:
@@ -166,16 +166,16 @@ Recommended retrieval order for a selected swimming workout:
 
 Implemented export mapping:
 
-- `HKWorkoutActivity.workoutConfiguration.lapLength` or `HKMetadataKeyLapLength` -> `metadata.swimming.poolLengthMeters`
-- `HKQuantityTypeIdentifierSwimmingStrokeCount` workout statistic -> `metadata.swimming.totalStrokeCount`
-- `HKWorkoutEventType.lap` -> `metadata.swimming.laps`
-- `HKWorkoutEventType.segment` -> `metadata.swimming.sets`
+- `HKWorkoutActivity.workoutConfiguration.lapLength` or `HKMetadataKeyLapLength` -> `metadata.data.poolLengthMeters`
+- `HKQuantityTypeIdentifierSwimmingStrokeCount` workout statistic -> `metadata.data.totalStrokeCount`
+- `HKWorkoutEventType.lap` -> `metadata.data.laps`
+- `HKWorkoutEventType.segment` -> `metadata.data.sets`
 - `HKMetadataKeySwimmingStrokeStyle` on lap events -> lap `strokeStyle`
 - `HKMetadataKeySWOLFScore` on lap events -> lap `swolf`
 - `HKMetadataKeySWOLFScore` on segment events -> set `averageSwolf`
 - Lap `strokeCount` -> inferred from `swolf - durationSeconds` when non-negative
 - Set `strokeStyle`, `strokeCount`, and `distanceMeters` -> inferred from overlapping laps
-- `HKWorkoutActivity.workoutConfiguration.swimmingLocationType` or `HKMetadataKeySwimmingLocationType` -> Verve `activitySubType`, not `metadata.swimming`
+- `HKWorkoutActivity.workoutConfiguration.swimmingLocationType` or `HKMetadataKeySwimmingLocationType` -> Verve `activitySubType`, not swim metadata `data`
 
 Real-device questions to continue testing:
 

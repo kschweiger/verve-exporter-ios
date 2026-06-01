@@ -17,7 +17,7 @@ Extend the Verve GeoJSON file format with a source-neutral swimming metadata obj
 
 ## Placement In Verve GeoJSON
 
-Swimming metadata belongs under root properties metadata:
+Swimming metadata belongs in the canonical root properties metadata envelope:
 
 ```json
 {
@@ -27,8 +27,9 @@ Swimming metadata belongs under root properties metadata:
     "activityType": "Swimming",
     "activitySubType": "Outdoor Pool",
     "metadata": {
-      "swimming": {
-        "schemaVersion": 1,
+      "target": "SwimmingMetaData",
+      "version": "1.0",
+      "data": {
         "poolLengthMeters": 50,
         "totalStrokeCount": 337,
         "averageSwolf": 97.1,
@@ -68,11 +69,18 @@ For sets, `averageSwolf` should represent the average of the included lap SWOLF 
 
 ## Field Definitions
 
-### `metadata.swimming`
+### `metadata`
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `schemaVersion` | integer | yes | Version of the swim metadata object. Start with `1`. |
+| `target` | string | yes | Metadata target. Swimming metadata uses `"SwimmingMetaData"`. |
+| `version` | string | yes | Metadata envelope version. Current swimming metadata value is `"1.0"`. |
+| `data` | object | yes | Source-neutral metadata payload for the target. |
+
+### `metadata.data` for `SwimmingMetaData`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
 | `poolLengthMeters` | number | no | Pool length in meters. Omit for open-water swims or when unknown. |
 | `totalStrokeCount` | integer | no | Total counted swim strokes for the whole workout. |
 | `averageSwolf` | number | no | Average swim efficiency score across the workout. |
@@ -82,9 +90,9 @@ For sets, `averageSwolf` should represent the average of the included lap SWOLF 
 | `laps` | array of swim lap objects | no | Atomic lap records, usually one pool length each. |
 | `sets` | array of swim set objects | no | Higher-level groupings of one or more laps. |
 
-Validity rule: `metadata.swimming` is optional. If present, it must contain `schemaVersion` and at least one meaningful swim data field besides `schemaVersion`. Meaningful fields are `poolLengthMeters`, `totalStrokeCount`, `averageSwolf`, `lapCount`, `setCount`, non-empty `strokeStyles`, non-empty `laps`, or non-empty `sets`.
+Validity rule: `properties.metadata` is optional. If present for swimming, it must contain `target: "SwimmingMetaData"`, `version: "1.0"`, and a `data` object with at least one meaningful swim data field. Meaningful fields are `poolLengthMeters`, `totalStrokeCount`, `averageSwolf`, `lapCount`, `setCount`, non-empty `strokeStyles`, non-empty `laps`, or non-empty `sets`.
 
-Exporters should omit `metadata.swimming` when it would contain only `schemaVersion`. Importers may accept and ignore a schema-only object for tolerance, but schema-only swim metadata is not considered meaningful Verve swim metadata.
+Exporters should omit swimming metadata when `data` would be empty. Importers may accept and ignore an empty `data` object for tolerance, but empty swim metadata is not considered meaningful Verve swim metadata.
 
 ### Stroke Style Values
 
@@ -190,7 +198,7 @@ The iOS exporter should map Apple HealthKit data into the source-neutral fields:
 - `HKMetadataKeySWOLFScore` on lap events -> lap `swolf`
 - `HKMetadataKeySWOLFScore` on segment events -> set `averageSwolf`
 
-HealthKit swimming location type should affect Verve `activitySubType`, not `metadata.swimming`.
+HealthKit swimming location type should affect Verve `activitySubType`, not swimming metadata `data`.
 
 ## Open Questions
 
@@ -200,7 +208,7 @@ HealthKit swimming location type should affect Verve `activitySubType`, not `met
 
 ## Acceptance Criteria
 
-- The Verve file documentation defines `metadata.swimming` as source-neutral swim metadata.
+- The Verve file documentation defines the `SwimmingMetaData` envelope as source-neutral swim metadata.
 - The iOS exporter can populate the documented fields from HealthKit pool swim diagnostics.
 - The backend can import the object into the existing activity JSON metadata column without needing a source-specific schema.
 - Existing non-swim Verve GeoJSON files remain valid.

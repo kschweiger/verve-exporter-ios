@@ -51,7 +51,7 @@ Use camelCase aliases in exported JSON.
 | `elevationLoss` | no | number or null | Elevation loss in meters. |
 | `stats` | yes | object | Aggregate metric summaries. |
 | `equipment` | no | array or null | Snapshot of associated equipment. |
-| `metadata` | no | object | Source-neutral activity metadata. Current documented child object: `metadata.swimming`. |
+| `metadata` | no | object | Canonical activity metadata envelope. Current documented target: `SwimmingMetaData`. |
 
 Important compatibility note: the backend schema field is `moving_duration` serialized as `movingDurationSeconds`. The current Swift model has `movingDistanceSeconds`, which does not match the backend alias and should be fixed before treating moving duration as supported.
 
@@ -74,31 +74,45 @@ Supported stats keys:
 - `power`
 - `cadence`
 
-## Swimming Metadata
+## Metadata Envelope
 
-Swimming workouts may include source-neutral metadata under `properties.metadata.swimming`.
+Activity metadata uses a canonical envelope under `properties.metadata`.
 
 Example:
 
 ```json
 {
-  "schemaVersion": 1,
-  "poolLengthMeters": 50,
-  "totalStrokeCount": 337,
-  "averageSwolf": 97.1,
-  "lapCount": 10,
-  "setCount": 8,
-  "strokeStyles": ["breaststroke", "freestyle"],
-  "laps": [],
-  "sets": []
+  "target": "SwimmingMetaData",
+  "version": "1.0",
+  "data": {
+    "poolLengthMeters": 50,
+    "totalStrokeCount": 337,
+    "averageSwolf": 97.1,
+    "lapCount": 10,
+    "setCount": 8,
+    "strokeStyles": ["breaststroke", "freestyle"],
+    "laps": [],
+    "sets": []
+  }
 }
 ```
 
-`metadata.swimming` fields:
+Envelope fields:
 
 | Field | Type | Required | Unit / meaning |
 | --- | --- | --- | --- |
-| `schemaVersion` | integer | yes | Swimming metadata schema version. Current value is `1`. |
+| `target` | string | yes | Metadata target. Swimming metadata uses `"SwimmingMetaData"`. |
+| `version` | string | yes | Metadata envelope version. Current swimming metadata value is `"1.0"`. |
+| `data` | object | yes | Source-neutral metadata payload for the target. |
+
+## Swimming Metadata
+
+Swimming workouts may include source-neutral metadata under `properties.metadata.data` when `properties.metadata.target == "SwimmingMetaData"`.
+
+Swimming metadata data fields:
+
+| Field | Type | Required | Unit / meaning |
+| --- | --- | --- | --- |
 | `poolLengthMeters` | number | no | Pool length in meters. Omit for open-water swims or when unknown. |
 | `totalStrokeCount` | integer | no | Total counted swim strokes for the whole workout. |
 | `averageSwolf` | number | no | Average swim efficiency score across exported laps. |
@@ -108,7 +122,7 @@ Example:
 | `laps` | array | no | Atomic lap records, usually one pool length each. |
 | `sets` | array | no | Higher-level groupings of one or more laps. |
 
-Validity rule: `metadata.swimming` is optional. If present, it must contain `schemaVersion` and at least one meaningful swim data field besides `schemaVersion`. Meaningful fields are:
+Validity rule: `properties.metadata` is optional. If present for swimming, it must contain `target: "SwimmingMetaData"`, `version: "1.0"`, and a `data` object with at least one meaningful swim data field. Meaningful fields are:
 
 - `poolLengthMeters`
 - `totalStrokeCount`
@@ -119,7 +133,7 @@ Validity rule: `metadata.swimming` is optional. If present, it must contain `sch
 - non-empty `laps`
 - non-empty `sets`
 
-Do not emit `metadata.swimming` when it would contain only `schemaVersion`. Importers may accept and ignore a schema-only object for tolerance, but it is not a meaningful Verve swim metadata object.
+Do not emit swimming metadata when `data` would be empty. Importers may accept and ignore an empty `data` object for tolerance, but it is not a meaningful Verve swim metadata object.
 
 SWOLF means swim golf:
 
@@ -170,7 +184,7 @@ Swim set fields:
 | `averageSwolf` | number | no | Average SWOLF for the set. |
 | `restAfterSeconds` | number | no | Time from this set end to the next set start. |
 
-Swimming location is not stored in `metadata.swimming`. Use root `activityType` and `activitySubType` for classification such as `Swimming` + `Indoor`, `Outdoor Pool`, or `Open Water`.
+Swimming location is not stored in swimming metadata `data`. Use root `activityType` and `activitySubType` for classification such as `Swimming` + `Indoor`, `Outdoor Pool`, or `Open Water`.
 
 ## Features
 

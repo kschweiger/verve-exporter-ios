@@ -37,11 +37,12 @@ struct EquipmentExport: Encodable {
 }
 
 struct VerveMetadata: Encodable {
-    let swimming: SwimmingMetadata?
+    let target: String
+    let version: String
+    let data: SwimmingMetadata
 }
 
 struct SwimmingMetadata: Encodable {
-    let schemaVersion: Int
     let poolLengthMeters: Double?
     let totalStrokeCount: Int?
     let averageSwolf: Double?
@@ -50,6 +51,17 @@ struct SwimmingMetadata: Encodable {
     let strokeStyles: [String]?
     let laps: [SwimLapMetadata]?
     let sets: [SwimSetMetadata]?
+
+    var hasMeaningfulData: Bool {
+        poolLengthMeters != nil ||
+        totalStrokeCount != nil ||
+        averageSwolf != nil ||
+        lapCount != nil ||
+        setCount != nil ||
+        strokeStyles?.isEmpty == false ||
+        laps?.isEmpty == false ||
+        sets?.isEmpty == false
+    }
 }
 
 struct SwimLapMetadata: Encodable {
