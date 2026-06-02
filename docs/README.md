@@ -22,4 +22,5 @@ Repository-local documentation is the system of record for future agents. If dur
 ## Key Project References
 
 - `product-specs/verve-geojson-format.md`: Verve GeoJSON export contract for this app.
+- `product-specs/verve-swimming-metadata.md`: Shareable Verve swimming metadata contract.
 - `references/healthkit.md`: HealthKit documentation links, current usage notes, and research backlog.

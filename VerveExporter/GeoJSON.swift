@@ -36,6 +36,61 @@ struct EquipmentExport: Encodable {
     let model: String?
 }
 
+struct VerveMetadata: Encodable {
+    let target: String
+    let version: String
+    let data: SwimmingMetadata
+}
+
+struct SwimmingMetadata: Encodable {
+    let poolLengthMeters: Double?
+    let totalStrokeCount: Int?
+    let averageSwolf: Double?
+    let lapCount: Int?
+    let setCount: Int?
+    let strokeStyles: [String]?
+    let laps: [SwimLapMetadata]?
+    let sets: [SwimSetMetadata]?
+
+    var hasMeaningfulData: Bool {
+        poolLengthMeters != nil ||
+        totalStrokeCount != nil ||
+        averageSwolf != nil ||
+        lapCount != nil ||
+        setCount != nil ||
+        strokeStyles?.isEmpty == false ||
+        laps?.isEmpty == false ||
+        sets?.isEmpty == false
+    }
+}
+
+struct SwimLapMetadata: Encodable {
+    let index: Int
+    let startTime: String?
+    let endTime: String?
+    let durationSeconds: Double?
+    let distanceMeters: Double?
+    let strokeStyle: String?
+    let strokeCount: Int?
+    let swolf: Double?
+    let restAfterSeconds: Double?
+}
+
+struct SwimSetMetadata: Encodable {
+    let index: Int
+    let startTime: String?
+    let endTime: String?
+    let durationSeconds: Double?
+    let lapStartIndex: Int?
+    let lapEndIndex: Int?
+    let lapCount: Int?
+    let distanceMeters: Double?
+    let strokeStyle: String?
+    let strokeCount: Int?
+    let averageSwolf: Double?
+    let restAfterSeconds: Double?
+}
+
 struct LineStringGeometry: Encodable {
     let type = "LineString"
     let coordinates: [Coordinates]
@@ -116,6 +171,7 @@ struct VerveProperties: Encodable {
     
     // -- Context --
     let equipment: [EquipmentExport]?
+    let metadata: VerveMetadata?
     
     enum CodingKeys: String, CodingKey {
         case verveVersion
@@ -129,6 +185,7 @@ struct VerveProperties: Encodable {
         case totalEnergyKcal
         case elevationGain, elevationLoss
         case stats, equipment
+        case metadata
     }
 }
 

@@ -20,6 +20,15 @@ Questions to resolve
 Completion criteria
 ```
 
+## Current Active Plans
+
+- None.
+
+## Completed Plans
+
+- `completed/2026-05-28-implement-swim-metadata-exporter.md`: Implemented source-neutral swimming lap, set, stroke, pool length, and SWOLF metadata export in the iOS exporter.
+- `completed/2026-06-01-swim-metadata-envelope.md`: Updated swim metadata export to use the canonical metadata envelope.
+
 ## Directories
 
 - `active/`: Plans currently being executed.

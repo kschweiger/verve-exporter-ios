@@ -11,3 +11,7 @@ Use this directory for:
 - Rollout and validation strategy.
 
 Keep `docs/DECISIONS.md` compact. Link to a design doc when a decision needs more context than a short entry.
+
+## Current Design Docs
+
+- `2026-05-28-swim-metadata-verve-file-extension.md`: Source-neutral Verve file extension for swimming laps, sets, strokes, and SWOLF metadata.

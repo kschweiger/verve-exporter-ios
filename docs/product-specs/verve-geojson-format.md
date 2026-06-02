@@ -51,7 +51,7 @@ Use camelCase aliases in exported JSON.
 | `elevationLoss` | no | number or null | Elevation loss in meters. |
 | `stats` | yes | object | Aggregate metric summaries. |
 | `equipment` | no | array or null | Snapshot of associated equipment. |
-| `metadata` | no | object | Arbitrary JSON metadata. The current Swift model does not encode this field. |
+| `metadata` | no | object | Canonical activity metadata envelope. Current documented target: `SwimmingMetaData`. |
 
 Important compatibility note: the backend schema field is `moving_duration` serialized as `movingDurationSeconds`. The current Swift model has `movingDistanceSeconds`, which does not match the backend alias and should be fixed before treating moving duration as supported.
 
@@ -73,6 +73,118 @@ Supported stats keys:
 - `heartRate`
 - `power`
 - `cadence`
+
+## Metadata Envelope
+
+Activity metadata uses a canonical envelope under `properties.metadata`.
+
+Example:
+
+```json
+{
+  "target": "SwimmingMetaData",
+  "version": "1.0",
+  "data": {
+    "poolLengthMeters": 50,
+    "totalStrokeCount": 337,
+    "averageSwolf": 97.1,
+    "lapCount": 10,
+    "setCount": 8,
+    "strokeStyles": ["breaststroke", "freestyle"],
+    "laps": [],
+    "sets": []
+  }
+}
+```
+
+Envelope fields:
+
+| Field | Type | Required | Unit / meaning |
+| --- | --- | --- | --- |
+| `target` | string | yes | Metadata target. Swimming metadata uses `"SwimmingMetaData"`. |
+| `version` | string | yes | Metadata envelope version. Current swimming metadata value is `"1.0"`. |
+| `data` | object | yes | Source-neutral metadata payload for the target. |
+
+## Swimming Metadata
+
+Swimming workouts may include source-neutral metadata under `properties.metadata.data` when `properties.metadata.target == "SwimmingMetaData"`.
+
+Swimming metadata data fields:
+
+| Field | Type | Required | Unit / meaning |
+| --- | --- | --- | --- |
+| `poolLengthMeters` | number | no | Pool length in meters. Omit for open-water swims or when unknown. |
+| `totalStrokeCount` | integer | no | Total counted swim strokes for the whole workout. |
+| `averageSwolf` | number | no | Average swim efficiency score across exported laps. |
+| `lapCount` | integer | no | Number of exported lap objects. |
+| `setCount` | integer | no | Number of exported set objects. |
+| `strokeStyles` | array of strings | no | Distinct stroke styles present in laps or sets. |
+| `laps` | array | no | Atomic lap records, usually one pool length each. |
+| `sets` | array | no | Higher-level groupings of one or more laps. |
+
+Validity rule: `properties.metadata` is optional. If present for swimming, it must contain `target: "SwimmingMetaData"`, `version: "1.0"`, and a `data` object with at least one meaningful swim data field. Meaningful fields are:
+
+- `poolLengthMeters`
+- `totalStrokeCount`
+- `averageSwolf`
+- `lapCount`
+- `setCount`
+- non-empty `strokeStyles`
+- non-empty `laps`
+- non-empty `sets`
+
+Do not emit swimming metadata when `data` would be empty. Importers may accept and ignore an empty `data` object for tolerance, but it is not a meaningful Verve swim metadata object.
+
+SWOLF means swim golf:
+
+```text
+SWOLF = length duration in seconds + stroke count for that length
+```
+
+Lower values are better for a fixed pool length. A 50 m length completed in `54` seconds with `26` strokes has a SWOLF score of `80`.
+
+Stroke style values use lowercase strings:
+
+- `freestyle`
+- `backstroke`
+- `breaststroke`
+- `butterfly`
+- `kickboard`
+- `mixed`
+- `unknown`
+
+Swim lap fields:
+
+| Field | Type | Required | Unit / meaning |
+| --- | --- | --- | --- |
+| `index` | integer | yes | Zero-based lap array index within the workout. |
+| `startTime` | string | no | ISO-8601 lap start time. |
+| `endTime` | string | no | ISO-8601 lap end time. |
+| `durationSeconds` | number | no | Lap duration in seconds. |
+| `distanceMeters` | number | no | Lap distance in meters. |
+| `strokeStyle` | string | no | Stroke style enum value. |
+| `strokeCount` | integer | no | Stroke count for this lap. |
+| `swolf` | number | no | SWOLF score for this lap. |
+| `restAfterSeconds` | number | no | Time from this lap end to the next lap start. |
+
+Swim set fields:
+
+| Field | Type | Required | Unit / meaning |
+| --- | --- | --- | --- |
+| `index` | integer | yes | Zero-based set array index within the workout. |
+| `startTime` | string | no | ISO-8601 set start time. |
+| `endTime` | string | no | ISO-8601 set end time. |
+| `durationSeconds` | number | no | Set duration in seconds. |
+| `lapStartIndex` | integer | no | Zero-based index of the first included lap. |
+| `lapEndIndex` | integer | no | Zero-based index of the last included lap. |
+| `lapCount` | integer | no | Number of laps in the set. |
+| `distanceMeters` | number | no | Set distance in meters. |
+| `strokeStyle` | string | no | Single style if included laps agree, otherwise `mixed`. |
+| `strokeCount` | integer | no | Total stroke count for the set. |
+| `averageSwolf` | number | no | Average SWOLF for the set. |
+| `restAfterSeconds` | number | no | Time from this set end to the next set start. |
+
+Swimming location is not stored in swimming metadata `data`. Use root `activityType` and `activitySubType` for classification such as `Swimming` + `Indoor`, `Outdoor Pool`, or `Open Water`.
 
 ## Features
 
@@ -138,10 +250,11 @@ Current implementation:
 - Exports no-geometry heart-rate time series for workouts without route data.
 - Calculates root heart-rate stats from exported/available heart-rate values.
 - Reads active energy and distance from workout statistics when present.
+- Exports source-neutral swimming metadata for HealthKit swim workouts when lap, segment, stroke, pool length, and SWOLF data are available.
 
 Known gaps:
 
 - `movingDistanceSeconds` is encoded instead of the backend-compatible `movingDurationSeconds`.
-- No cadence, power, temperature, speed, elevation gain/loss, equipment, or metadata export is implemented.
+- No cadence, power, temperature, speed, elevation gain/loss, or equipment export is implemented.
 - Multiple HealthKit route samples or route discontinuities are not yet documented as multiple Verve features.
 - No automated schema/fixture tests exist.

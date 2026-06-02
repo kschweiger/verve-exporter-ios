@@ -16,3 +16,4 @@ Create a product spec before implementing new user-visible behavior when require
 ## Current Specs
 
 - `verve-geojson-format.md`: Current Verve GeoJSON export contract used by this iOS exporter.
+- `verve-swimming-metadata.md`: Shareable Verve swimming metadata contract for exporters, importers, and backend services.
