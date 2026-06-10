@@ -22,7 +22,7 @@ Completion criteria
 
 ## Current Active Plans
 
-- None.
+- `active/2026-06-10-direct-export-share-sheet.md`: Replace the intermediate export `ShareLink` overlay with a native share sheet presented directly after GeoJSON generation.
 
 ## Completed Plans
 
