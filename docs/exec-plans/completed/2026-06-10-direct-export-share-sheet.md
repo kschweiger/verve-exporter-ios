@@ -286,6 +286,9 @@ Do not share, paste, commit, or upload the generated workout file unless the spe
 ## Progress Log
 
 - 2026-06-10: Created active execution plan for direct export share sheet refactor.
+- 2026-06-11: Replaced the intermediate `ShareLink` sheet content with a UIKit `UIActivityViewController` wrapper in `ContentView.swift`.
+- 2026-06-11: Verified the old overlay path is gone with targeted `rg` checks and preserved the existing row-level export/error state flow.
+- 2026-06-11: Validation results: `make validate-docs` passed, `git diff --check` passed after removing one trailing-space issue, `make validate-build` hit the documented sandbox macro/plugin failure, and the fallback build with `OTHER_SWIFT_FLAGS='-disable-sandbox'` succeeded.
 
 ## Decisions
 

@@ -22,12 +22,13 @@ Completion criteria
 
 ## Current Active Plans
 
-- `active/2026-06-10-direct-export-share-sheet.md`: Replace the intermediate export `ShareLink` overlay with a native share sheet presented directly after GeoJSON generation.
+- None.
 
 ## Completed Plans
 
 - `completed/2026-05-28-implement-swim-metadata-exporter.md`: Implemented source-neutral swimming lap, set, stroke, pool length, and SWOLF metadata export in the iOS exporter.
 - `completed/2026-06-01-swim-metadata-envelope.md`: Updated swim metadata export to use the canonical metadata envelope.
+- `completed/2026-06-10-direct-export-share-sheet.md`: Replaced the intermediate export `ShareLink` overlay with a native share sheet presented directly after GeoJSON generation.
 
 ## Directories
 

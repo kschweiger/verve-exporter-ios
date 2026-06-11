@@ -7,6 +7,7 @@
 
 import SwiftUI
 import HealthKit
+import UIKit
 
 struct ContentView: View {
     @State private var healthManager = HealthManager()
@@ -154,7 +155,7 @@ struct WorkoutRow: View {
         
         // 1. The Share Sheet
         .sheet(item: $exportFile) { file in
-            ShareView(url: file.url)
+            ActivityView(activityItems: [file.url])
         }
         
         // 2. The Debug Sheet (New)
@@ -202,17 +203,21 @@ struct WorkoutRow: View {
 // MARK: - Helper Views & Extensions
 
 // 1. Share Sheet Wrapper
-struct ShareView: View {
-    let url: URL
+struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    var applicationActivities: [UIActivity]? = nil
     
-    var body: some View {
-        // Points to the file URL we generated
-        ShareLink(item: url) {
-            Label("Save GeoJSON", systemImage: "doc.text")
-                .font(.headline)
-                .padding()
-        }
-        .presentationDetents([.medium]) // Makes the sheet take up half screen
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
+    }
+
+    func updateUIViewController(
+        _ uiViewController: UIActivityViewController,
+        context: Context
+    ) {
     }
 }
 
