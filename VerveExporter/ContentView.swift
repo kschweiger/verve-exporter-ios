@@ -81,7 +81,8 @@ struct WorkoutRow: View {
     
     // Internal State
     @State private var isExporting = false
-    @State private var exportFile: ExportFile?
+    @State private var exportSheetState: ExportSheetState?
+    @State private var activeExportID: UUID?
     @State private var showError = false
     
     // New State for Debugging
@@ -130,15 +131,40 @@ struct WorkoutRow: View {
                 } else {
                     Button {
                         Task {
+                            let exportID = UUID()
+                            activeExportID = exportID
                             isExporting = true
+                            exportSheetState = .preparing(exportID)
+
+                            #if DEBUG
+                            let exportStart = Date()
+                            print("Export started for workout \(workout.uuid)")
+                            #endif
+
                             do {
                                 let url = try await healthManager.generateGeoJSON(for: workout)
-                                self.exportFile = ExportFile(url: url)
+
+                                #if DEBUG
+                                let elapsed = Date().timeIntervalSince(exportStart)
+                                print("Export generated for workout \(workout.uuid) in \(String(format: "%.2f", elapsed))s")
+                                #endif
+
+                                if activeExportID == exportID {
+                                    exportSheetState = .sharing(ExportFile(url: url))
+                                }
                             } catch {
                                 print("Export error: \(error.localizedDescription)")
-                                showError = true
+
+                                if activeExportID == exportID {
+                                    exportSheetState = nil
+                                    showError = true
+                                }
                             }
-                            isExporting = false
+
+                            if activeExportID == exportID {
+                                isExporting = false
+                                activeExportID = nil
+                            }
                         }
                     } label: {
                         Image(systemName: "square.and.arrow.up")
@@ -154,8 +180,16 @@ struct WorkoutRow: View {
         // --- Modifiers ---
         
         // 1. The Share Sheet
-        .sheet(item: $exportFile) { file in
-            ActivityView(activityItems: [file.url])
+        .sheet(item: $exportSheetState, onDismiss: {
+            activeExportID = nil
+            isExporting = false
+        }) { state in
+            switch state {
+            case .preparing:
+                PreparingExportView()
+            case .sharing(let file):
+                ActivityView(activityItems: [file.url])
+            }
         }
         
         // 2. The Debug Sheet (New)
@@ -218,6 +252,38 @@ struct ActivityView: UIViewControllerRepresentable {
         _ uiViewController: UIActivityViewController,
         context: Context
     ) {
+    }
+}
+
+struct PreparingExportView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+
+            Text("Preparing Export")
+                .font(.headline)
+
+            Text("Reading workout data...")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+}
+
+enum ExportSheetState: Identifiable {
+    case preparing(UUID)
+    case sharing(ExportFile)
+
+    var id: String {
+        switch self {
+        case .preparing(let id):
+            return "preparing-\(id.uuidString)"
+        case .sharing(let file):
+            return "sharing-\(file.id)"
+        }
     }
 }
 
