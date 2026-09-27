@@ -4,4 +4,4 @@ Reference docs collect domain and API notes for future agents. Keep them factual
 
 ## Current References
 
-- `healthkit.md`: HealthKit documentation links, current app usage, export time zone mapping, swimming data findings, known caveats, and research backlog.
+- `healthkit.md`: HealthKit documentation links, current app usage, synthetic testing, export time zone mapping, swimming data findings, and moving-duration research backlog.

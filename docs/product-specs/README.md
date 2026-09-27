@@ -15,5 +15,5 @@ Create a product spec before implementing new user-visible behavior when require
 
 ## Current Specs
 
-- `verve-geojson-format.md`: Current Verve GeoJSON export contract, including timestamp time zone rules, used by this iOS exporter.
+- `verve-geojson-format.md`: Current Verve GeoJSON export contract, including omitted moving duration, timestamp time zone, and empty-workout rules.
 - `verve-swimming-metadata.md`: Shareable Verve swimming metadata contract for exporters, importers, and backend services.

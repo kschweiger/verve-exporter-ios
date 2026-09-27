@@ -191,6 +191,10 @@ Real-device questions to continue testing:
 
 ## Manual Testing Reality
 
+The automated export suite uses synthetic HealthKit objects in memory and does not require HealthKit authorization or saved workouts. Apple documents simulator sample accounts for clinical records; it does not provide a comparable preloaded workout/route fixture set. `HKWorkoutBuilder`, `HKQuantitySample`, and `HKWorkoutRouteBuilder` can create synthetic saved workouts for a later opt-in simulator integration check, with write authorization. Keep that check on a dedicated simulator.
+
+Sources: https://developer.apple.com/documentation/healthkit/accessing-sample-data-in-the-simulator ; https://developer.apple.com/documentation/healthkit/hkworkoutbuilder ; https://developer.apple.com/documentation/healthkit/hkworkoutroutebuilder
+
 HealthKit route export is hard to test without real device data. Current practical smoke testing uses the user's own workouts. That is acceptable for local/manual validation but not for committed fixtures.
 
 Before adding fixtures:
@@ -209,6 +213,7 @@ Use this section as the starting place for future HealthKit investigations.
 - Cycling power: identify the quantity type and authorization requirements for power samples.
 - Speed: decide whether to export sampled speed, derive it from route points, or rely on backend-derived stats.
 - Elevation gain/loss: decide whether to compute from route altitude, use workout statistics if available, or let backend derive it.
+- Moving duration: determine whether HealthKit provides a trustworthy moving-time measure distinct from total `HKWorkout.duration`, including pauses and stationary workouts, before adding `movingDurationSeconds` to iOS exports.
 - Swimming: use verified pool-lap and segment findings above to design the Verve export shape; still test open-water workouts.
 - Indoor workouts: decide expected behavior for no-geometry features with heart rate only.
 - Permission UX: distinguish no authorization, no data, and unsupported data in user-facing errors.

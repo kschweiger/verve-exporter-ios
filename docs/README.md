@@ -5,22 +5,22 @@ Repository-local documentation is the system of record for future agents. If dur
 ## Core Documents
 
 - `../AGENTS.md`: Short agent entry point and table of contents.
-- `../ARCHITECTURE.md`: Repository layout, stack, boundaries, dependency direction, and validation boundaries.
+- `../ARCHITECTURE.md`: Repository layout, including focused HealthKit/export helper files, stack, boundaries, dependency direction, and validation boundaries.
 - `PRINCIPLES.md`: Harness operating principles.
-- `TESTING.md`: Safe validation commands, unknown commands, and unsafe or expensive checks.
-- `SECURITY.md`: Secrets, HealthKit data, local-only files, data constraints, and forbidden handling patterns.
-- `QUALITY_SCORE.md`: Lightweight quality score, gaps, and next actions.
-- `DECISIONS.md`: Compact decision log, including export time zone selection, with links to design docs when more rationale is needed.
+- `TESTING.md`: Safe validation commands, pre-commit lint/format checks, synthetic export and swim diagnostic XCTest coverage, and real-device smoke checks.
+- `SECURITY.md`: Secrets, HealthKit data, synthetic fixture rules, and forbidden handling patterns.
+- `QUALITY_SCORE.md`: Lightweight quality score, measured app coverage, gaps, and next actions.
+- `DECISIONS.md`: Compact decision log, including export time zone, moving-duration omission, and synthetic test choices.
 
 ## Work Areas
 
 - `product-specs/`: Product behavior, file formats, business rules, user-visible requirements, and acceptance criteria.
 - `design-docs/`: Technical rationale, architecture choices, trade-offs, and larger change designs.
-- `exec-plans/`: Active and completed execution plans plus the technical debt tracker.
+- `exec-plans/`: Active and completed execution plans, including export tests, plus the technical debt tracker.
 - `references/`: Domain and API reference notes, including HealthKit findings.
 
 ## Key Project References
 
-- `product-specs/verve-geojson-format.md`: Verve GeoJSON export contract and timestamp time zone rules for this app.
+- `product-specs/verve-geojson-format.md`: Verve GeoJSON export contract, omitted moving duration, timestamp rules, and empty-workout behavior.
 - `product-specs/verve-swimming-metadata.md`: Shareable Verve swimming metadata contract.
-- `references/healthkit.md`: HealthKit documentation links, current usage and time zone notes, and research backlog.
+- `references/healthkit.md`: HealthKit documentation links, current usage, synthetic test guidance, and moving-duration research backlog.

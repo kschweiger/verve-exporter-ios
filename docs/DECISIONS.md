@@ -4,6 +4,22 @@ This is the compact decision log. Keep entries short. If a decision needs longer
 
 ## Entries
 
+### 2026-09-27: Omit moving duration from iOS GeoJSON
+
+Decision: Emit neither `movingDurationSeconds` nor the unsupported `movingDistanceSeconds` until the iOS app has a trustworthy moving-duration value.
+
+Context: The old field was ignored by the Python importer. Renaming it made the importer use `HKWorkout.duration` as moving duration instead of deriving moving time from a route.
+
+Consequences: New iOS exports leave moving duration for the importer to derive from a moving track. For a stationary workout, the importer leaves it unset. Researching an iOS moving-duration source is tracked as technical debt.
+
+### 2026-09-27: Test exports with in-memory synthetic HealthKit objects
+
+Decision: Add an iOS XCTest target that supplies invented workout, route, and heart-rate objects directly to the export builder. Keep saved HealthKit integration checks separate and opt-in on a dedicated simulator.
+
+Context: Export mapping and GeoJSON compatibility carry most of this app's logic; preloaded simulator clinical records do not provide workout routes.
+
+Consequences: The automated suite checks export behavior without personal Health data. Real authorization and route-query behavior still require a separate integration or device check.
+
 ### 2026-05-28: Initialize repository agent harness
 
 Decision: Initialize this repository with HarnessHub v0.1 from local source `/Users/korbinian/harnesshub`.
