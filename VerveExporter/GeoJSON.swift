@@ -20,7 +20,7 @@ struct ActivityStats: Encodable {
     let heartRate: MetricSummary?
     let power: MetricSummary?
     let cadence: MetricSummary?
-    
+
     enum CodingKeys: String, CodingKey {
         case speed
         case heartRate
@@ -54,13 +54,13 @@ struct SwimmingMetadata: Encodable {
 
     var hasMeaningfulData: Bool {
         poolLengthMeters != nil ||
-        totalStrokeCount != nil ||
-        averageSwolf != nil ||
-        lapCount != nil ||
-        setCount != nil ||
-        strokeStyles?.isEmpty == false ||
-        laps?.isEmpty == false ||
-        sets?.isEmpty == false
+            totalStrokeCount != nil ||
+            averageSwolf != nil ||
+            lapCount != nil ||
+            setCount != nil ||
+            strokeStyles?.isEmpty == false ||
+            laps?.isEmpty == false ||
+            sets?.isEmpty == false
     }
 }
 
@@ -102,7 +102,7 @@ struct LineProperties: Encodable {
     let cadences: [Int?]?
     let powers: [Double?]?
     let temperatures: [Double?]?
-    
+
     enum CodingKeys: String, CodingKey {
         case coordTimes
         case heartRates
@@ -116,23 +116,23 @@ struct LineFeature: Encodable {
     let type = "Feature"
     let geometry: LineStringGeometry?
     let properties: LineProperties
-    
+
     enum CodingKeys: String, CodingKey {
         case type
         case geometry
         case properties
     }
-    
-    // Manual implementation to force "geometry": null
+
+    /// Manual implementation to force "geometry": null
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        
+
         // 1. Encode Type
         try container.encode(type, forKey: .type)
-        
+
         // 2. Encode Properties
         try container.encode(properties, forKey: .properties)
-        
+
         // 3. Encode Geometry (Explicit Null handling)
         if let geometry = geometry {
             try container.encode(geometry, forKey: .geometry)
@@ -143,35 +143,34 @@ struct LineFeature: Encodable {
     }
 }
 
-
 struct VerveProperties: Encodable {
     // -- Identification --
     let verveVersion: String = "1.0"
     let generator: String = "VerveExporteriOS"
-    
+
     // -- Core Data --
     let name: String
     let description: String?
     let activityType: String
     let activitySubType: String?
-    
+
     let startTime: String
-    
+
     // -- Dimensions --
     let durationSeconds: Double
     let totalDistanceMeters: Double?
     let totalEnergyKcal: Double?
-    
+
     let elevationGain: Double?
     let elevationLoss: Double?
-    
-    // -- Extensible Aggregates --
+
+    /// -- Extensible Aggregates --
     let stats: ActivityStats
-    
+
     // -- Context --
     let equipment: [EquipmentExport]?
     let metadata: VerveMetadata?
-    
+
     enum CodingKeys: String, CodingKey {
         case verveVersion
         case generator
@@ -186,7 +185,6 @@ struct VerveProperties: Encodable {
         case metadata
     }
 }
-
 
 struct VerveFeature: Encodable {
     let type = "FeatureCollection"

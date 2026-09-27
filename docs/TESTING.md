@@ -4,6 +4,7 @@
 
 ```bash
 make validate-docs
+make validate-lint
 make xcode-list
 make validate-build
 make validate
@@ -15,7 +16,11 @@ rg <pattern>
 
 `make validate-docs` checks required harness files, parses harness metadata, and scans for unresolved template markers. It is the fastest validation target and does not invoke Xcode.
 
-`make validate` runs `make validate-docs` and `make validate-build`.
+`make validate-lint` runs `uvx pre-commit run -a`, including SwiftFormat,
+SwiftLint, and plutil checks. The local `swiftformat` and `swiftlint`
+executables must be available on `PATH`.
+
+`make validate` runs documentation, lint, and generic iOS build validation.
 
 `xcodebuild -list` completed during bootstrap and found the `VerveExporter` scheme, but the sandbox reported CoreSimulatorService and cache permission warnings. Treat those warnings as environment-specific unless reproduced outside the sandbox.
 
@@ -38,7 +43,7 @@ xcrun simctl list devices available
 make test TEST_DESTINATION='platform=iOS Simulator,id=<simulator-UUID>'
 ```
 
-Xcode's Product > Test also runs the suite on the selected simulator or device. Prefer a simulator so test runs remain separate from a personal Health store. The test target is hosted by the iOS app; it cannot run as a macOS unit test. `make validate` remains the simulator-independent docs and generic iOS build check.
+Xcode's Product > Test also runs the suite on the selected simulator or device. Prefer a simulator so test runs remain separate from a personal Health store. The test target is hosted by the iOS app; it cannot run as a macOS unit test. `make validate` remains simulator-independent and runs docs, lint, and generic iOS build checks.
 
 Automated export coverage:
 
@@ -55,6 +60,19 @@ The test input uses in-memory HealthKit objects. Real HealthKit authorization, s
 
 ## Lint, Format, Typecheck, And Build Commands
 
+Lint and format:
+
+```bash
+uvx pre-commit run -a
+```
+
+The repository hooks run SwiftFormat in lint mode and SwiftLint with strict
+warnings, along with YAML, whitespace, conflict-marker, symlink, and Apple
+property-file checks. SwiftFormat uses `.swiftformat`; the local `swiftformat`
+and `swiftlint` executables must be available on `PATH` because these hooks use
+the pre-commit `unsupported` environment. Run them directly with
+`uvx pre-commit run -a` or through `make validate-lint`.
+
 Build:
 
 ```bash
@@ -62,7 +80,9 @@ make validate-build
 xcodebuild -project VerveExporter.xcodeproj -scheme VerveExporter -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/VerveExporter-DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-No SwiftLint, formatter, typecheck-only command, or CI configuration exists at bootstrap.
+`make validate` runs documentation and generic iOS build validation. It does
+not run pre-commit hooks or XCTest. No typecheck-only command or CI configuration
+exists at bootstrap.
 
 ## Smoke Tests
 

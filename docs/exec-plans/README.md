@@ -26,6 +26,7 @@ Completion criteria
 
 ## Completed Plans
 
+- `completed/2026-09-27-pre-commit-lint-cleanup.md`: Aligned SwiftFormat and SwiftLint settings and refactored existing Swift code to satisfy the new hooks without changing app behavior.
 - `completed/2026-09-27-omit-moving-duration.md`: Omitted both moving-time keys from new iOS exports and recorded the missing source as technical debt.
 - `completed/2026-09-27-export-tests.md`: Added synthetic export XCTest coverage and rejected empty exports; the moving-duration key change was subsequently superseded.
 - `completed/2026-09-27-export-timestamp-timezones.md`: Exported workout timestamps with local offsets from the workout time zone or current device time zone.

@@ -22,18 +22,22 @@ REQUIRED_FILES := \
 	docs/exec-plans/completed/.gitkeep \
 	docs/exec-plans/tech-debt-tracker.md
 
-.PHONY: help validate validate-docs validate-build test xcode-list manual-smoke
+.PHONY: help validate validate-docs validate-lint validate-build test xcode-list manual-smoke
 
 help:
 	@printf '%s\n' 'Validation targets:'
 	@printf '%s\n' '  make validate-docs   Check harness files, metadata syntax, and unresolved template markers.'
+	@printf '%s\n' '  make validate-lint   Run pre-commit hooks, including SwiftFormat, SwiftLint, and plutil.'
 	@printf '%s\n' '  make xcode-list      Confirm the Xcode project exposes the expected scheme.'
 	@printf '%s\n' '  make validate-build  Run a signing-disabled generic iOS build.'
-	@printf '%s\n' '  make validate        Run docs validation and the generic iOS build.'
+	@printf '%s\n' '  make validate        Run docs, lint, and generic iOS build validation.'
 	@printf '%s\n' '  make test TEST_DESTINATION=...   Run XCTest on an iOS simulator.'
 	@printf '%s\n' '  make manual-smoke    Print the real-device HealthKit smoke-test reference.'
 
-validate: validate-docs validate-build
+validate: validate-docs validate-lint validate-build
+
+validate-lint:
+	uvx pre-commit run -a
 
 validate-docs:
 	@missing=0; \
