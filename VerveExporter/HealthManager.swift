@@ -126,8 +126,10 @@ class HealthManager {
 
         let (gpsDataOrNil, hrDataOrNil) = await (locationsTask, heartRatesTask)
 
+        let exportTimeZone = exportTimeZone(for: workout)
         let isoFormatter = ISO8601DateFormatter()
         isoFormatter.formatOptions = [.withInternetDateTime]
+        isoFormatter.timeZone = exportTimeZone
         let swimmingMetadata = buildSwimmingMetadata(for: workout, isoFormatter: isoFormatter)
 
         // Prepare Data
@@ -265,6 +267,7 @@ class HealthManager {
         // --- Filename Generation ---
         let fileDateFormatter = DateFormatter()
         fileDateFormatter.dateFormat = "yyyy-MM-dd_HH-mm"
+        fileDateFormatter.timeZone = exportTimeZone
         let dateString = fileDateFormatter.string(from: workout.startDate)
 
         // Concatenate Type and SubType (if present)
@@ -281,6 +284,14 @@ class HealthManager {
         try data.write(to: tempURL)
 
         return tempURL
+    }
+
+    private func exportTimeZone(for workout: HKWorkout) -> TimeZone {
+        guard let identifier = workout.metadata?[HKMetadataKeyTimeZone] as? String,
+              let timeZone = TimeZone(identifier: identifier) else {
+            return .current
+        }
+        return timeZone
     }
 
     private func generateSwimDiagnosticJSON(for workout: HKWorkout) throws -> String {

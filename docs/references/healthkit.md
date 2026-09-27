@@ -21,6 +21,7 @@ Current code in `VerveExporter/HealthManager.swift` uses:
 - `HKSampleQueryDescriptor` to fetch `HKQuantitySample` heart-rate samples between workout start and end.
 - `HKWorkout.statistics(for:)` for active energy and available distance totals.
 - `HKMetadataKeyIndoorWorkout` to distinguish indoor and outdoor activity mappings.
+- `HKMetadataKeyTimeZone` to format exported timestamps in the workout's recorded time zone when the identifier is valid.
 - The debug JSON sheet shows a swimming diagnostic payload for selected swim workouts, including workout events, activity-level configuration, and swim statistics. This diagnostic payload is not part of the Verve export schema.
 - Normal Verve GeoJSON export maps swimming laps, sets, stroke style, pool length, stroke count, and SWOLF values into the source-neutral `properties.metadata` envelope with `target: "SwimmingMetaData"`.
 
@@ -40,6 +41,7 @@ Current code in `VerveExporter/HealthManager.swift` uses:
 - `HKQuantitySample`: https://developer.apple.com/documentation/healthkit/hkquantitysample
 - `HKQuantityTypeIdentifier.heartRate`: https://developer.apple.com/documentation/healthkit/hkquantitytypeidentifier/heartrate
 - `HKMetadataKeyIndoorWorkout`: https://developer.apple.com/documentation/healthkit/hkmetadatakeyindoorworkout
+- `HKMetadataKeyTimeZone`: https://developer.apple.com/documentation/healthkit/hkmetadatakeytimezone
 
 If any link moves, search within Apple Developer Documentation and update the link here rather than leaving stale URLs.
 
@@ -104,6 +106,8 @@ sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
 ```
 
 Current nearest-neighbor matching accepts a heart-rate sample when it is within 30 seconds of a route timestamp. If this threshold changes, document the reason and test effect on sparse data.
+
+`HKMetadataKeyTimeZone` is a string compatible with `NSTimeZone` names. Export uses a valid workout-level identifier for every timestamp and the filename date. When it is missing or invalid, export uses `TimeZone.current` captured at export time. ISO-8601 formatting calculates the offset for each timestamp's date, so daylight saving changes within a workout retain the correct offsets without changing the underlying instants.
 
 ## Swimming Data Research
 

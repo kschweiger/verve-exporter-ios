@@ -26,6 +26,14 @@ Consequences: Field names, units, nullability, and activity mappings are compati
 
 Follow-up checks: Add automated tests that encode sample Verve JSON and validate key names.
 
+### 2026-09-27: Format export timestamps in the workout time zone
+
+Decision: Use a valid workout `HKMetadataKeyTimeZone` identifier for all exported timestamps and the filename date; fall back to the device's current time zone when unavailable. Emit ISO-8601 offsets without a separate time zone field.
+
+Context: UTC timestamps preserve instants but do not show the workout's local clock time in the exported file. The existing Verve schema accepts timestamps with offsets.
+
+Consequences: The offset is calculated for each timestamp date, including daylight saving transitions. Re-exporting a workout without valid time zone metadata on a device in another time zone can change its displayed local time and filename, while preserving the same instant.
+
 ### 2026-05-28: Add Makefile validation entry points
 
 Decision: Add `Makefile` targets for harness validation, Xcode scheme inspection, signing-disabled generic iOS builds, and the full validation path.

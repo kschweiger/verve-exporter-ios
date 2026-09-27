@@ -55,6 +55,12 @@ Use camelCase aliases in exported JSON.
 
 Important compatibility note: the backend schema field is `moving_duration` serialized as `movingDurationSeconds`. The current Swift model has `movingDistanceSeconds`, which does not match the backend alias and should be fixed before treating moving duration as supported.
 
+## Timestamp Time Zones
+
+The iOS exporter writes all GeoJSON timestamps with an ISO-8601 UTC offset. This includes root `startTime`, feature `coordTimes`, and swimming lap and set `startTime` and `endTime`. UTC may appear as `Z`. The offset changes for each timestamp when daylight saving rules require it; formatting does not change the underlying instant.
+
+Use the workout's `HKMetadataKeyTimeZone` value when it is a valid time zone identifier. If it is missing or invalid, use the device's current time zone at export time. The export filename's date uses the same selected time zone. No separate time zone field is emitted.
+
 ## Metric Summary
 
 Each metric summary is an object with optional numeric values:
@@ -246,6 +252,7 @@ Current implementation:
 - Exports GPS workouts as one `LineString` feature.
 - Exports `[longitude, latitude, altitude]` from `CLLocation`.
 - Exports `coordTimes` from route timestamps.
+- Formats exported timestamps and the filename date in the workout's recorded time zone when available, otherwise the device's current time zone.
 - Finds nearest heart-rate sample within 30 seconds of each route point.
 - Exports no-geometry heart-rate time series for workouts without route data.
 - Calculates root heart-rate stats from exported/available heart-rate values.

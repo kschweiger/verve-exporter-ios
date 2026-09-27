@@ -10,7 +10,7 @@ Repository-local documentation is the system of record for future agents. If dur
 - `TESTING.md`: Safe validation commands, unknown commands, and unsafe or expensive checks.
 - `SECURITY.md`: Secrets, HealthKit data, local-only files, data constraints, and forbidden handling patterns.
 - `QUALITY_SCORE.md`: Lightweight quality score, gaps, and next actions.
-- `DECISIONS.md`: Compact decision log with links to design docs when more rationale is needed.
+- `DECISIONS.md`: Compact decision log, including export time zone selection, with links to design docs when more rationale is needed.
 
 ## Work Areas
 
@@ -21,6 +21,6 @@ Repository-local documentation is the system of record for future agents. If dur
 
 ## Key Project References
 
-- `product-specs/verve-geojson-format.md`: Verve GeoJSON export contract for this app.
+- `product-specs/verve-geojson-format.md`: Verve GeoJSON export contract and timestamp time zone rules for this app.
 - `product-specs/verve-swimming-metadata.md`: Shareable Verve swimming metadata contract.
-- `references/healthkit.md`: HealthKit documentation links, current usage notes, and research backlog.
+- `references/healthkit.md`: HealthKit documentation links, current usage and time zone notes, and research backlog.

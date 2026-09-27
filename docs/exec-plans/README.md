@@ -26,6 +26,7 @@ Completion criteria
 
 ## Completed Plans
 
+- `completed/2026-09-27-export-timestamp-timezones.md`: Exported workout timestamps with local offsets from the workout time zone or current device time zone.
 - `completed/2026-05-28-implement-swim-metadata-exporter.md`: Implemented source-neutral swimming lap, set, stroke, pool length, and SWOLF metadata export in the iOS exporter.
 - `completed/2026-06-01-swim-metadata-envelope.md`: Updated swim metadata export to use the canonical metadata envelope.
 - `completed/2026-06-10-direct-export-share-sheet.md`: Replaced the intermediate export `ShareLink` overlay with a native share sheet presented directly after GeoJSON generation.
