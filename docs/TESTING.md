@@ -31,13 +31,27 @@ Use the workaround only as a validation command, not as a committed build settin
 
 ## Test Commands
 
-No XCTest target exists in the repository at bootstrap. Add a test target before relying on automated unit tests.
+`VerveExporterTests` exercises the export builder and swim diagnostic JSON with invented workouts, routes, heart-rate samples, and swimming events. It does not save samples to HealthKit or read personal Health data. Run it on an available iOS simulator:
 
-Recommended first tests:
+```bash
+xcrun simctl list devices available
+make test TEST_DESTINATION='platform=iOS Simulator,id=<simulator-UUID>'
+```
 
-- Pure Swift encoding tests for `GeoJSON.swift`, especially field names and omission/null behavior.
-- Pure mapping tests for HealthKit workout type to Verve `activityType` and `activitySubType` values.
-- Export-shape tests using sanitized fixtures, not personal workout files.
+Xcode's Product > Test also runs the suite on the selected simulator or device. Prefer a simulator so test runs remain separate from a personal Health store. The test target is hosted by the iOS app; it cannot run as a macOS unit test. `make validate` remains the simulator-independent docs and generic iOS build check.
+
+Automated export coverage:
+
+- Route coordinates, timestamp and heart-rate alignment, and required duration.
+- Nearest heart-rate matching at the strict 30-second boundary and stats from matched values.
+- No-route heart-rate output and rejection of workouts with no route or heart-rate samples.
+- Synthetic swimming lap/set metadata, ordering, rest intervals, mixed styles, and incomplete inputs.
+- Swim diagnostic event grouping and metadata representation.
+- Indoor/outdoor activity mapping and workout time-zone selection with fallback.
+
+`HKWorkout` rejects an invalid `HKMetadataKeyTimeZone` value at construction, so synthetic tests cover a missing time zone fallback. Invalid persisted metadata still uses the same fallback branch in the exporter.
+
+The test input uses in-memory HealthKit objects. Real HealthKit authorization, saved-route queries, and device-specific workout data still need the manual smoke test below.
 
 ## Lint, Format, Typecheck, And Build Commands
 
@@ -73,6 +87,5 @@ Before claiming work is complete, run the safest relevant commands above. If a c
 
 ## Unknowns To Confirm
 
-- A stable local or CI destination for repeatable builds and tests.
-- Whether the project should add a unit test target now or wait until the export model is refactored.
-- How to create representative sanitized workout fixtures without exposing personal HealthKit data.
+- A CI runner with an available iOS simulator destination.
+- A separate opt-in simulator integration test that writes synthetic workouts and routes to a dedicated simulator HealthKit store.

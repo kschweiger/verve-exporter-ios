@@ -21,6 +21,8 @@ This app reads Apple HealthKit workout data. Workout exports may contain sensiti
 
 Treat all real exports and debug previews as private unless the user explicitly marks a specific file as sanitized and safe to commit.
 
+Export unit tests may construct invented `HKWorkout`, `HKQuantitySample`, `HKWorkoutEvent`, and `CLLocation` objects in memory. Keep fixture coordinates, dates, and health values invented. Do not seed a personal device's HealthKit store for automated tests.
+
 ## Forbidden Handling Patterns
 
 - Do not print secrets or tokens in logs.
@@ -31,6 +33,6 @@ Treat all real exports and debug previews as private unless the user explicitly 
 
 ## Unknowns To Confirm
 
-- Whether any sanitized fixture exports may be checked in later.
+- Whether a future saved-HealthKit simulator integration fixture can be checked in; current in-memory fixtures contain invented values only.
 - Whether the app will ever upload directly to the Verve backend or remain a local share/export tool.
 - Whether additional HealthKit permissions will be needed for cadence, power, speed, elevation, or other metrics.

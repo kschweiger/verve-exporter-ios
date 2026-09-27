@@ -22,10 +22,12 @@ Completion criteria
 
 ## Current Active Plans
 
-- None.
+- `active/2026-09-27-coverage-tests.md`: Add synthetic tests for export edge cases and swim diagnostics, then compare coverage with the baseline.
 
 ## Completed Plans
 
+- `completed/2026-09-27-omit-moving-duration.md`: Omitted both moving-time keys from new iOS exports and recorded the missing source as technical debt.
+- `completed/2026-09-27-export-tests.md`: Added synthetic export XCTest coverage and rejected empty exports; the moving-duration key change was subsequently superseded.
 - `completed/2026-09-27-export-timestamp-timezones.md`: Exported workout timestamps with local offsets from the workout time zone or current device time zone.
 - `completed/2026-05-28-implement-swim-metadata-exporter.md`: Implemented source-neutral swimming lap, set, stroke, pool length, and SWOLF metadata export in the iOS exporter.
 - `completed/2026-06-01-swim-metadata-envelope.md`: Updated swim metadata export to use the canonical metadata envelope.

@@ -22,7 +22,7 @@ REQUIRED_FILES := \
 	docs/exec-plans/completed/.gitkeep \
 	docs/exec-plans/tech-debt-tracker.md
 
-.PHONY: help validate validate-docs xcode-list validate-build manual-smoke
+.PHONY: help validate validate-docs validate-build test xcode-list manual-smoke
 
 help:
 	@printf '%s\n' 'Validation targets:'
@@ -30,6 +30,7 @@ help:
 	@printf '%s\n' '  make xcode-list      Confirm the Xcode project exposes the expected scheme.'
 	@printf '%s\n' '  make validate-build  Run a signing-disabled generic iOS build.'
 	@printf '%s\n' '  make validate        Run docs validation and the generic iOS build.'
+	@printf '%s\n' '  make test TEST_DESTINATION=...   Run XCTest on an iOS simulator.'
 	@printf '%s\n' '  make manual-smoke    Print the real-device HealthKit smoke-test reference.'
 
 validate: validate-docs validate-build
@@ -66,6 +67,18 @@ validate-build:
 		-derivedDataPath $(DERIVED_DATA) \
 		CODE_SIGNING_ALLOWED=NO \
 		build
+
+test:
+	@test -n "$(TEST_DESTINATION)" || { printf '%s\n' 'Set TEST_DESTINATION to an available iOS simulator destination.'; exit 1; }
+	xcodebuild \
+		-project $(PROJECT) \
+		-scheme $(SCHEME) \
+		-configuration $(CONFIGURATION) \
+		-destination '$(TEST_DESTINATION)' \
+		-derivedDataPath $(DERIVED_DATA) \
+		-parallel-testing-enabled NO \
+		CODE_SIGNING_ALLOWED=NO \
+		test
 
 manual-smoke:
 	@printf '%s\n' 'Manual HealthKit smoke test is documented in docs/TESTING.md.'

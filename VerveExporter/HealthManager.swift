@@ -15,6 +15,22 @@ struct VerveActivityCategory {
     let subType: String?
 }
 
+struct GeoJSONExport {
+    let data: Data
+    let fileName: String
+}
+
+enum GeoJSONExportError: LocalizedError {
+    case noSamples
+
+    var errorDescription: String? {
+        switch self {
+        case .noSamples:
+            return "This workout has no route or heart-rate samples to export."
+        }
+    }
+}
+
 private struct SwimDiagnosticReport: Encodable {
     let generatedAt: String
     let note: String
@@ -120,13 +136,32 @@ class HealthManager {
     }
 
     func generateGeoJSON(for workout: HKWorkout) async throws -> URL {
-        // Fetch Data Streams
         async let locationsTask = try? fetchRouteLocations(for: workout)
         async let heartRatesTask = try? fetchHeartRates(for: workout)
-
         let (gpsDataOrNil, hrDataOrNil) = await (locationsTask, heartRatesTask)
 
-        let exportTimeZone = exportTimeZone(for: workout)
+        let export = try buildGeoJSON(
+            for: workout,
+            locations: gpsDataOrNil ?? [],
+            heartRates: hrDataOrNil ?? [],
+            fallbackTimeZone: .current
+        )
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(export.fileName)
+        try export.data.write(to: tempURL)
+        return tempURL
+    }
+
+    func buildGeoJSON(
+        for workout: HKWorkout,
+        locations: [CLLocation],
+        heartRates: [HKQuantitySample],
+        fallbackTimeZone: TimeZone
+    ) throws -> GeoJSONExport {
+        guard !locations.isEmpty || !heartRates.isEmpty else {
+            throw GeoJSONExportError.noSamples
+        }
+
+        let exportTimeZone = exportTimeZone(for: workout, fallback: fallbackTimeZone)
         let isoFormatter = ISO8601DateFormatter()
         isoFormatter.formatOptions = [.withInternetDateTime]
         isoFormatter.timeZone = exportTimeZone
@@ -137,13 +172,14 @@ class HealthManager {
         var allHRValues: [Double] = []
 
         // Process Logic
-        if let gpsData = gpsDataOrNil, !gpsData.isEmpty {
+        if !locations.isEmpty {
             // --- SCENARIO A: GPS Exists (Outdoor Run/Bike/Hike) ---
             var coords: [Coordinates] = []
             var times: [String] = []
             var hrs: [Int?] = []
 
-            let hrSamples = hrDataOrNil ?? []
+            let gpsData = locations
+            let hrSamples = heartRates
 
             for location in gpsData {
                 // Geometry
@@ -179,7 +215,8 @@ class HealthManager {
 
             features.append(LineFeature(geometry: geometry, properties: properties))
 
-        } else if let hrSamples = hrDataOrNil, !hrSamples.isEmpty {
+        } else if !heartRates.isEmpty {
+            let hrSamples = heartRates
             // --- SCENARIO B: No GPS, but HR Exists (Treadmill, Strength, Yoga) ---
             var times: [String] = []
             var hrs: [Int?] = []
@@ -245,7 +282,6 @@ class HealthManager {
             activitySubType: mapping.subType,
             startTime: isoFormatter.string(from: workout.startDate),
             durationSeconds: workout.duration,
-            movingDistanceSeconds: workout.duration,
             totalDistanceMeters: totalDistance,
             totalEnergyKcal: totalCalories,
             elevationGain: nil,
@@ -280,16 +316,13 @@ class HealthManager {
         let safeType = fileNameType.replacingOccurrences(of: " ", with: "_")
         let fileName = "\(dateString)_\(safeType).json"
 
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-        try data.write(to: tempURL)
-
-        return tempURL
+        return GeoJSONExport(data: data, fileName: fileName)
     }
 
-    private func exportTimeZone(for workout: HKWorkout) -> TimeZone {
+    private func exportTimeZone(for workout: HKWorkout, fallback: TimeZone) -> TimeZone {
         guard let identifier = workout.metadata?[HKMetadataKeyTimeZone] as? String,
               let timeZone = TimeZone(identifier: identifier) else {
-            return .current
+            return fallback
         }
         return timeZone
     }

@@ -159,7 +159,6 @@ struct VerveProperties: Encodable {
     
     // -- Dimensions --
     let durationSeconds: Double
-    let movingDistanceSeconds: Double?
     let totalDistanceMeters: Double?
     let totalEnergyKcal: Double?
     
@@ -180,7 +179,6 @@ struct VerveProperties: Encodable {
         case activityType, activitySubType
         case startTime
         case durationSeconds
-        case movingDistanceSeconds
         case totalDistanceMeters
         case totalEnergyKcal
         case elevationGain, elevationLoss

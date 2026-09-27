@@ -44,7 +44,7 @@ Use camelCase aliases in exported JSON.
 | `activitySubType` | no | string or null | Verve subtype, such as `Run`, `Indoor`, or `Treadmill`. |
 | `startTime` | yes | ISO-8601 string | Activity start time. |
 | `durationSeconds` | yes | number | Total workout duration in seconds. |
-| `movingDurationSeconds` | no | number or null | Moving duration in seconds. |
+| `movingDurationSeconds` | no | number or null | Moving duration in seconds. The iOS exporter currently omits it. |
 | `totalDistanceMeters` | no | number or null | Total distance in meters. |
 | `totalEnergyKcal` | no | number or null | Active energy in kcal. |
 | `elevationGain` | no | number or null | Elevation gain in meters. |
@@ -53,7 +53,7 @@ Use camelCase aliases in exported JSON.
 | `equipment` | no | array or null | Snapshot of associated equipment. |
 | `metadata` | no | object | Canonical activity metadata envelope. Current documented target: `SwimmingMetaData`. |
 
-Important compatibility note: the backend schema field is `moving_duration` serialized as `movingDurationSeconds`. The current Swift model has `movingDistanceSeconds`, which does not match the backend alias and should be fixed before treating moving duration as supported.
+The backend schema field is `moving_duration`, serialized as `movingDurationSeconds`. The iOS exporter currently emits neither this field nor the old unsupported `movingDistanceSeconds` field. For a moving track, the backend derives moving duration when the field is absent.
 
 ## Timestamp Time Zones
 
@@ -255,13 +255,13 @@ Current implementation:
 - Formats exported timestamps and the filename date in the workout's recorded time zone when available, otherwise the device's current time zone.
 - Finds nearest heart-rate sample within 30 seconds of each route point.
 - Exports no-geometry heart-rate time series for workouts without route data.
+- Reports an export error when a workout has neither route nor heart-rate samples, because Verve requires at least one feature.
 - Calculates root heart-rate stats from exported/available heart-rate values.
 - Reads active energy and distance from workout statistics when present.
 - Exports source-neutral swimming metadata for HealthKit swim workouts when lap, segment, stroke, pool length, and SWOLF data are available.
 
 Known gaps:
 
-- `movingDistanceSeconds` is encoded instead of the backend-compatible `movingDurationSeconds`.
 - No cadence, power, temperature, speed, elevation gain/loss, or equipment export is implemented.
 - Multiple HealthKit route samples or route discontinuities are not yet documented as multiple Verve features.
-- No automated schema/fixture tests exist.
+- Automated synthetic export tests cover representative route, heart-rate, swim, time-zone, and empty-input scenarios; saved HealthKit query behavior remains a separate integration boundary.

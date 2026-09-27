@@ -16,6 +16,7 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 - `VerveExporter/DebugView.swift`: JSON preview sheet that reuses the export path and shows generated output for inspection.
 - `VerveExporter/HealthManager.swift`: HealthKit authorization, workout queries, route and heart-rate extraction, Verve activity mapping, and export file generation.
 - `VerveExporter/GeoJSON.swift`: Encodable Swift models for the Verve GeoJSON export structure.
+- `VerveExporterTests/`: In-memory synthetic workout tests for the export builder.
 - `VerveExporter/VerveExporter.entitlements`: HealthKit entitlement.
 - `docs/`: Harness, product, testing, security, and reference docs for future agents.
 
@@ -50,6 +51,6 @@ Document where external input is validated before it enters core logic.
 
 ## Current Unknowns
 
-- Repeatable test fixture strategy for realistic workout route and heart-rate exports is not established.
+- Synthetic in-memory HealthKit workout, route, and heart-rate inputs cover repeatable export tests; saved HealthKit query integration is not yet automated.
 - The exact safe CI-grade `xcodebuild` destination is not confirmed.
 - HealthKit coverage for cadence, cycling power, speed, and elevation gain is not yet documented beyond current route and heart-rate export behavior.
