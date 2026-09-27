@@ -2,6 +2,7 @@ PROJECT := VerveExporter.xcodeproj
 SCHEME := VerveExporter
 CONFIGURATION := Debug
 DERIVED_DATA := /private/tmp/VerveExporter-DerivedData
+COVERAGE_RESULT_BUNDLE ?=
 
 REQUIRED_FILES := \
 	AGENTS.md \
@@ -22,7 +23,7 @@ REQUIRED_FILES := \
 	docs/exec-plans/completed/.gitkeep \
 	docs/exec-plans/tech-debt-tracker.md
 
-.PHONY: help validate validate-docs validate-lint validate-build test xcode-list manual-smoke
+.PHONY: help validate validate-docs validate-lint validate-build test test-coverage xcode-list manual-smoke
 
 help:
 	@printf '%s\n' 'Validation targets:'
@@ -32,6 +33,7 @@ help:
 	@printf '%s\n' '  make validate-build  Run a signing-disabled generic iOS build.'
 	@printf '%s\n' '  make validate        Run docs, lint, and generic iOS build validation.'
 	@printf '%s\n' '  make test TEST_DESTINATION=...   Run XCTest on an iOS simulator.'
+	@printf '%s\n' '  make test-coverage TEST_DESTINATION=...   Run XCTest and print target coverage.'
 	@printf '%s\n' '  make manual-smoke    Print the real-device HealthKit smoke-test reference.'
 
 validate: validate-docs validate-lint validate-build
@@ -83,6 +85,26 @@ test:
 		-parallel-testing-enabled NO \
 		CODE_SIGNING_ALLOWED=NO \
 		test
+
+test-coverage:
+	@test -n "$(TEST_DESTINATION)" || { printf '%s\n' 'Set TEST_DESTINATION to an available iOS simulator destination.'; exit 1; }
+	@result_bundle="$(COVERAGE_RESULT_BUNDLE)"; \
+	if [ -z "$$result_bundle" ]; then \
+		result_bundle="/private/tmp/$(SCHEME)-Coverage-$$(date +%Y%m%d-%H%M%S)-$$$$.xcresult"; \
+	fi; \
+	printf 'Coverage result bundle: %s\n' "$$result_bundle"; \
+	xcodebuild \
+		-project $(PROJECT) \
+		-scheme $(SCHEME) \
+		-configuration $(CONFIGURATION) \
+		-destination '$(TEST_DESTINATION)' \
+		-derivedDataPath $(DERIVED_DATA) \
+		-resultBundlePath "$$result_bundle" \
+		-enableCodeCoverage YES \
+		-parallel-testing-enabled NO \
+		CODE_SIGNING_ALLOWED=NO \
+		test && \
+	xcrun xccov view --report --only-targets "$$result_bundle"
 
 manual-smoke:
 	@printf '%s\n' 'Manual HealthKit smoke test is documented in docs/TESTING.md.'

@@ -41,9 +41,16 @@ Use the workaround only as a validation command, not as a committed build settin
 ```bash
 xcrun simctl list devices available
 make test TEST_DESTINATION='platform=iOS Simulator,id=<simulator-UUID>'
+make test-coverage TEST_DESTINATION='platform=iOS Simulator,id=<simulator-UUID>'
 ```
 
 Xcode's Product > Test also runs the suite on the selected simulator or device. Prefer a simulator so test runs remain separate from a personal Health store. The test target is hosted by the iOS app; it cannot run as a macOS unit test. `make validate` remains simulator-independent and runs docs, lint, and generic iOS build checks.
+
+`make test-coverage` enables Xcode coverage, saves a uniquely named `.xcresult`
+bundle under `/private/tmp`, and prints the app and test target coverage summary.
+The app target percentage measures app code; the test target percentage measures
+the test code itself. Set `COVERAGE_RESULT_BUNDLE=/path/to/result.xcresult` to
+choose a specific output path; that path must not already exist.
 
 Automated export coverage:
 
