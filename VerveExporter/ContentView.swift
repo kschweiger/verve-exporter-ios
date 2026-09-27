@@ -5,17 +5,17 @@
 //  Created by Korbinian Schweiger on 27.12.25.
 //
 
-import SwiftUI
 import HealthKit
+import SwiftUI
 import UIKit
 
 struct ContentView: View {
     @State private var healthManager = HealthManager()
-    
+
     // Local state to hold the data for the UI
     @State private var workouts: [HKWorkout] = []
     @State private var errorMessage: String?
-    
+
     var body: some View {
         NavigationStack {
             List(workouts, id: \.uuid) { workout in
@@ -37,14 +37,14 @@ struct ContentView: View {
                 get: { errorMessage != nil },
                 set: { _ in errorMessage = nil }
             )) {
-                Button("OK", role: .cancel) { }
+                Button("OK", role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "Unknown error")
             }
         }
     }
-    
-    // Helper function to orchestrate the async calls
+
+    /// Helper function to orchestrate the async calls
     private func loadData() async {
         print("--- STARTING LOAD DATA ---")
         do {
@@ -53,23 +53,23 @@ struct ContentView: View {
                 print("HealthKit is NOT available on this device.")
                 return
             }
-            
+
             // 2. Request Authorization
             print("Requesting authorization...")
             try await healthManager.requestAuthorization()
             print("Authorization request finished.")
-            
+
             // 3. Fetch data
             print("Fetching workouts...")
             let fetchedWorkouts = try await healthManager.fetchWorkouts()
             print("Found \(fetchedWorkouts.count) workouts.")
-            
+
             // 4. Update UI
-            self.workouts = fetchedWorkouts
-            
+            workouts = fetchedWorkouts
+
         } catch {
             print("CRITICAL ERROR: \(error.localizedDescription)")
-            self.errorMessage = error.localizedDescription
+            errorMessage = error.localizedDescription
         }
     }
 }
@@ -78,44 +78,44 @@ struct WorkoutRow: View {
     // Inputs
     let workout: HKWorkout
     var healthManager: HealthManager
-    
+
     // Internal State
     @State private var isExporting = false
     @State private var exportSheetState: ExportSheetState?
     @State private var activeExportID: UUID?
     @State private var showError = false
-    
-    // New State for Debugging
+
+    /// New State for Debugging
     @State private var showDebug = false
-    
+
     var body: some View {
         HStack {
             // 1. Icon
-            Image(systemName: iconName(for: workout.workoutActivityType))
+            Image(systemName: WorkoutActivityIconMapper.systemName(for: workout.workoutActivityType))
                 .font(.title2)
                 .foregroundColor(.blue)
                 .frame(width: 40)
-            
+
             // 2. Text Info
             VStack(alignment: .leading) {
                 Text(workout.workoutActivityType.name)
                     .font(.headline)
-                
+
                 Text(workout.startDate.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption)
                     .foregroundColor(.gray)
             }
-            
+
             Spacer()
-            
+
             // 3. Duration
             Text(formatDuration(workout.duration))
                 .font(.subheadline)
                 .monospacedDigit()
-            
+
             // --- BUTTONS ---
             HStack(spacing: 15) { // Group buttons together
-                
+
                 // A. Debug Button (New)
                 Button {
                     showDebug = true
@@ -124,7 +124,7 @@ struct WorkoutRow: View {
                         .foregroundColor(.orange)
                 }
                 .buttonStyle(.plain)
-                
+
                 // B. Export Button
                 if isExporting {
                     ProgressView()
@@ -137,16 +137,19 @@ struct WorkoutRow: View {
                             exportSheetState = .preparing(exportID)
 
                             #if DEBUG
-                            let exportStart = Date()
-                            print("Export started for workout \(workout.uuid)")
+                                let exportStart = Date()
+                                print("Export started for workout \(workout.uuid)")
                             #endif
 
                             do {
                                 let url = try await healthManager.generateGeoJSON(for: workout)
 
                                 #if DEBUG
-                                let elapsed = Date().timeIntervalSince(exportStart)
-                                print("Export generated for workout \(workout.uuid) in \(String(format: "%.2f", elapsed))s")
+                                    let elapsed = Date().timeIntervalSince(exportStart)
+                                    print(
+                                        "Export generated for workout \(workout.uuid) "
+                                            + "in \(String(format: "%.2f", elapsed))s"
+                                    )
                                 #endif
 
                                 if activeExportID == exportID {
@@ -174,58 +177,40 @@ struct WorkoutRow: View {
                 }
             }
             .padding(.leading, 10)
-            
         } // End Main HStack
-        
+
         // --- Modifiers ---
-        
+
         // 1. The Share Sheet
-        .sheet(item: $exportSheetState, onDismiss: {
-            activeExportID = nil
-            isExporting = false
-        }) { state in
-            switch state {
-            case .preparing:
-                PreparingExportView()
-            case .sharing(let file):
-                ActivityView(activityItems: [file.url])
+        .sheet(
+            item: $exportSheetState,
+            onDismiss: {
+                activeExportID = nil
+                isExporting = false
+            },
+            content: { state in
+                switch state {
+                case .preparing:
+                    PreparingExportView()
+                case let .sharing(file):
+                    ActivityView(activityItems: [file.url])
+                }
             }
-        }
-        
+        )
+
         // 2. The Debug Sheet (New)
         .sheet(isPresented: $showDebug) {
             DebugView(workout: workout, healthManager: healthManager)
         }
-        
+
         // 3. Error Alert
         .alert("Export Failed", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
+            Button("OK", role: .cancel) {}
         } message: {
             Text("Could not find data for this workout.")
         }
     }
-    
-    // ... (Keep your iconName and formatDuration helpers exactly as they were) ...
-    func iconName(for type: HKWorkoutActivityType) -> String {
-        switch type {
-        case .running: return "figure.run"
-        case .walking: return "figure.walk"
-        case .hiking: return "figure.hiking"
-        case .cycling: return "figure.outdoor.cycle"
-        case .swimming: return "figure.pool.swim"
-        case .elliptical: return "figure.elliptical"
-        case .traditionalStrengthTraining, .functionalStrengthTraining: return "dumbbell.fill"
-        case .yoga: return "figure.yoga"
-        case .crossTraining: return "figure.cross.training"
-        case .dance: return "figure.dance"
-        case .rowing: return "figure.rower"
-        case .coreTraining: return "figure.core.training"
-        case .cooldown: return "figure.cooldown"
-        case .climbing: return "figure.climbing"
-        default: return "figure.mixed.cardio"
-        }
-    }
-    
+
     func formatDuration(_ duration: TimeInterval) -> String {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute]
@@ -236,12 +221,12 @@ struct WorkoutRow: View {
 
 // MARK: - Helper Views & Extensions
 
-// 1. Share Sheet Wrapper
+/// 1. Share Sheet Wrapper
 struct ActivityView: UIViewControllerRepresentable {
     let activityItems: [Any]
-    var applicationActivities: [UIActivity]? = nil
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
+    var applicationActivities: [UIActivity]?
+
+    func makeUIViewController(context _: Context) -> UIActivityViewController {
         UIActivityViewController(
             activityItems: activityItems,
             applicationActivities: applicationActivities
@@ -249,10 +234,9 @@ struct ActivityView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(
-        _ uiViewController: UIActivityViewController,
-        context: Context
-    ) {
-    }
+        _: UIActivityViewController,
+        context _: Context
+    ) {}
 }
 
 struct PreparingExportView: View {
@@ -279,22 +263,23 @@ enum ExportSheetState: Identifiable {
 
     var id: String {
         switch self {
-        case .preparing(let id):
+        case let .preparing(id):
             return "preparing-\(id.uuidString)"
-        case .sharing(let file):
+        case let .sharing(file):
             return "sharing-\(file.id)"
         }
     }
 }
 
-
 struct ExportFile: Identifiable {
     let url: URL
-    // We use the URL string itself as the unique ID
-    var id: String { url.absoluteString }
+    /// We use the URL string itself as the unique ID
+    var id: String {
+        url.absoluteString
+    }
 }
 
-// Extension to map Enum types to readable Strings
+/// Extension to map Enum types to readable Strings
 extension HKWorkoutActivityType {
     var name: String {
         switch self {
@@ -303,14 +288,12 @@ extension HKWorkoutActivityType {
         case .hiking: return "Hike"
         case .cycling: return "Bike"
         case .swimming: return "Swim"
-            
-            // The ones you were missing:
+        // The ones you were missing:
         case .elliptical: return "Elliptical" // Often used for Crosstrainer
         case .traditionalStrengthTraining: return "Strength Training"
         case .functionalStrengthTraining: return "Functional Strength"
         case .crossTraining: return "Cross Training"
-            
-            // Common Gym/Studio types
+        // Common Gym/Studio types
         case .yoga: return "Yoga"
         case .pilates: return "Pilates"
         case .rowing: return "Rowing"
@@ -319,8 +302,7 @@ extension HKWorkoutActivityType {
         case .cooldown: return "Cooldown"
         case .highIntensityIntervalTraining: return "HIIT"
         case .climbing: return "Climbing"
-            
-            // Fallback for the other ~70 types
+        // Fallback for the other ~70 types
         default:
             // This is a nifty trick: standardizes "HKWorkoutActivityTypeCaseName" -> "Case Name"
             // Use debugDescription or manual mapping if you want perfection,
@@ -329,7 +311,6 @@ extension HKWorkoutActivityType {
         }
     }
 }
-
 
 #Preview {
     ContentView()

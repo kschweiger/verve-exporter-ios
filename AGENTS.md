@@ -25,7 +25,9 @@ Before claiming work is complete, run the safest relevant validation commands fr
 
 ## Safe Commands
 
+- `uvx pre-commit run -a`
 - `make validate-docs`
+- `make validate-lint`
 - `make xcode-list`
 - `make validate-build`
 - `make validate`
@@ -34,7 +36,7 @@ Before claiming work is complete, run the safest relevant validation commands fr
 - `git status --short`
 - `rg <pattern>`
 
-Use `make validate-docs` for fast harness checks. Use `make validate-build` for the generic iOS compiler check, and `make validate` when a source change should pass both docs and build validation. HealthKit route and workout behavior still requires a configured real device and real or fixture workout data.
+Use `make validate-docs` for fast harness checks. Use `make validate-lint` for SwiftFormat, SwiftLint, and pre-commit checks; it also runs plutil. Use `make validate-build` for the generic iOS compiler check, and `make validate` to run docs, lint, and build validation. HealthKit route and workout behavior still requires a configured real device and real or fixture workout data.
 
 ## Unsafe Commands
 

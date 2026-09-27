@@ -5,17 +5,17 @@
 //  Created by Korbinian Schweiger on 28.12.25.
 //
 
-import SwiftUI
 import HealthKit
+import SwiftUI
 
 struct DebugView: View {
     let workout: HKWorkout
     let healthManager: HealthManager
-    
+
     @State private var jsonContent: String = ""
     @State private var isLoading = true
     @State private var errorMessage: String?
-    
+
     var body: some View {
         NavigationStack {
             Group {
@@ -54,15 +54,15 @@ struct DebugView: View {
             await generateAndLoad()
         }
     }
-    
+
     private func generateAndLoad() async {
         do {
-            self.jsonContent = try await healthManager.generateDebugJSON(for: workout)
-            self.isLoading = false
-            
+            jsonContent = try await healthManager.generateDebugJSON(for: workout)
+            isLoading = false
+
         } catch {
-            self.errorMessage = error.localizedDescription
-            self.isLoading = false
+            errorMessage = error.localizedDescription
+            isLoading = false
         }
     }
 }

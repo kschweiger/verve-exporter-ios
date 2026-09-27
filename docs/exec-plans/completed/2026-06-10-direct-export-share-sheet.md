@@ -91,7 +91,7 @@ Delete this helper view entirely:
 ```swift
 struct ShareView: View {
     let url: URL
-    
+
     var body: some View {
         ShareLink(item: url) {
             Label("Save GeoJSON", systemImage: "doc.text")
@@ -111,14 +111,14 @@ Add this helper where `ShareView` used to be, above `ExportFile`:
 struct ActivityView: UIViewControllerRepresentable {
     let activityItems: [Any]
     var applicationActivities: [UIActivity]? = nil
-    
+
     func makeUIViewController(context: Context) -> UIActivityViewController {
         UIActivityViewController(
             activityItems: activityItems,
             applicationActivities: applicationActivities
         )
     }
-    
+
     func updateUIViewController(
         _ uiViewController: UIActivityViewController,
         context: Context

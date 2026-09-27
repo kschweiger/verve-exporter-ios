@@ -7,10 +7,9 @@ Currently, supports:
 - Tracks (latitude, longitude, altitude)
 - timestamps (for each track point)
 - heart rate (if available for each track point)
-- General information: 
+- General information:
   - name
   - type
   - start time
   - duration
   - energy
-

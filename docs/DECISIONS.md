@@ -50,6 +50,14 @@ Context: UTC timestamps preserve instants but do not show the workout's local cl
 
 Consequences: The offset is calculated for each timestamp date, including daylight saving transitions. Re-exporting a workout without valid time zone metadata on a device in another time zone can change its displayed local time and filename, while preserving the same instant.
 
+### 2026-09-27: Align SwiftFormat with SwiftLint
+
+Decision: Format Swift 5.0 source at 120 columns, omit trailing commas, and keep multiline statement braces on the declaration line to match SwiftLint's strict rules. Split swimming metadata, diagnostics, activity mapping, and feature assembly into focused source files to satisfy the hooks without suppressing rules.
+
+Context: The new pre-commit hooks initially disagreed on trailing commas and reported existing source-size, function-size, and complexity violations.
+
+Consequences: Run `uvx pre-commit run -a` for lint and format checks. The generic build remains a separate `make validate-build` check.
+
 ### 2026-05-28: Add Makefile validation entry points
 
 Decision: Add `Makefile` targets for harness validation, Xcode scheme inspection, signing-disabled generic iOS builds, and the full validation path.
