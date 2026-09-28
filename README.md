@@ -1,15 +1,14 @@
-# Verve Exporter
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/kschweiger/verve-exporter-ios/blob/5bb3cb71dfa4970156462bf30ffac1ec8ae682bf/icons/AppIcon.appiconset/verve-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/kschweiger/verve-exporter-ios/blob/5bb3cb71dfa4970156462bf30ffac1ec8ae682bf/icons/AppIcon.appiconset/verve-light.png" />
+    <img alt="verve exporter logo" src="https://github.com/kschweiger/verve-exporter-ios/blob/5bb3cb71dfa4970156462bf30ffac1ec8ae682bf/icons/AppIcon.appiconset/verve-light.png" width="96" />
 
-Simple iOS App can export any tracked workout to a `geojson` format.
+  </picture>
+</p>
 
-Currently, supports:
+<h1 align="center">Verve Exporter</h1>
 
-- Tracks (latitude, longitude, altitude)
-- timestamps (for each track point)
-- heart rate (if available for each track point)
-- General information:
-  - name
-  - type
-  - start time
-  - duration
-  - energy
+Verve exporter is a lightweight open-source utility for iOS that exports activies tracked on you phone or watch as json files.
+
+The json file follows geojson standards but adapts a opinonated schema.
