@@ -4,6 +4,14 @@ This is the compact decision log. Keep entries short. If a decision needs longer
 
 ## Entries
 
+### 2026-09-28: Browse by Verve activity type and reveal ten workouts at a time
+
+Decision: Use the top-level `VerveActivityMapper` type for a single activity filter, show the newest matching workout first, and reveal older matches ten at a time under month headings. Keep an explicit one-tap clear action for the selected filter.
+
+Context: Routine use centers on exporting the latest workout, while a new user needs a manageable way to find and export older workouts individually.
+
+Consequences: Workout queries must find matching activities beyond the newest ten overall. The UI must handle an empty category and reset to All activities when the filter is cleared.
+
 ### 2026-09-27: Omit moving duration from iOS GeoJSON
 
 Decision: Emit neither `movingDurationSeconds` nor the unsupported `movingDistanceSeconds` until the iOS app has a trustworthy moving-duration value.

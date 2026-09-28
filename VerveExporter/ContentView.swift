@@ -10,93 +10,170 @@ import SwiftUI
 import UIKit
 
 struct ContentView: View {
-    @State private var healthManager = HealthManager()
-
-    // Local state to hold the data for the UI
-    @State private var workouts: [HKWorkout] = []
-    @State private var errorMessage: String?
+    @State private var browser = WorkoutBrowserModel()
 
     var body: some View {
         NavigationStack {
-            List(workouts, id: \.uuid) { workout in
-                // This block runs for every item in the list
-                WorkoutRow(workout: workout, healthManager: healthManager)
+            VStack(spacing: 0) {
+                filterBar
+
+                List {
+                    if let latest = browser.workouts.first {
+                        Section("Latest activity") {
+                            WorkoutRow(
+                                workout: latest,
+                                healthManager: browser.healthManager
+                            )
+                        }
+
+                        ForEach(monthSections) { month in
+                            Section(month.date.formatted(.dateTime.month(.wide).year())) {
+                                ForEach(month.workouts, id: \.uuid) { workout in
+                                    WorkoutRow(workout: workout, healthManager: browser.healthManager)
+                                }
+                            }
+                        }
+                    } else if browser.isLoading {
+                        ProgressView("Loading activities…")
+                    } else if browser.loadFailed {
+                        ContentUnavailableView(
+                            "Couldn’t load activities",
+                            systemImage: "exclamationmark.arrow.circlepath",
+                            description: Text("Try again to read your workouts.")
+                        )
+                        Button("Try Again") {
+                            Task { await browser.reload() }
+                        }
+                    } else if browser.selectedFilter == .all {
+                        ContentUnavailableView(
+                            "No activities",
+                            systemImage: "figure.run",
+                            description: Text("Workouts from Apple Health will appear here.")
+                        )
+                    } else {
+                        ContentUnavailableView(
+                            "No \(browser.selectedFilter.rawValue) activities",
+                            systemImage: "line.3.horizontal.decrease.circle",
+                            description: Text("Try another activity type or clear the filter.")
+                        )
+                        Button("Clear filter") {
+                            browser.selectFilter(.all)
+                        }
+                    }
+
+                    if browser.hasMore {
+                        Button {
+                            Task { await browser.showMore() }
+                        } label: {
+                            if browser.isLoadingMore {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Show more")
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .disabled(browser.isLoadingMore)
+                    }
+                }
+                .refreshable {
+                    await browser.reload()
+                }
             }
             .navigationTitle("Activities")
             .task {
-                // This acts like "useEffect" or "onMount" in JS frameworks.
-                // It runs strictly once when the view appears.
-                await loadData()
+                await browser.loadInitially()
             }
-            .refreshable {
-                // Adds "Pull to Refresh" functionality automatically
-                await loadData()
-            }
-            // Simple error handling alert
             .alert("Error", isPresented: Binding(
-                get: { errorMessage != nil },
-                set: { _ in errorMessage = nil }
+                get: { browser.errorMessage != nil },
+                set: { _ in browser.errorMessage = nil }
             )) {
                 Button("OK", role: .cancel) {}
             } message: {
-                Text(errorMessage ?? "Unknown error")
+                Text(browser.errorMessage ?? "Unknown error")
             }
         }
     }
 
-    /// Helper function to orchestrate the async calls
-    private func loadData() async {
-        print("--- STARTING LOAD DATA ---")
-        do {
-            // 1. Check if HealthKit is available
-            guard HKHealthStore.isHealthDataAvailable() else {
-                print("HealthKit is NOT available on this device.")
-                return
+    private var filterBar: some View {
+        HStack {
+            Menu {
+                filterMenuItem(.all)
+                Divider()
+                ForEach(ActivityFilter.allCases.filter { $0 != .all }) { filter in
+                    filterMenuItem(filter)
+                }
+            } label: {
+                Label(browser.selectedFilter.rawValue, systemImage: "line.3.horizontal.decrease")
             }
 
-            // 2. Request Authorization
-            print("Requesting authorization...")
-            try await healthManager.requestAuthorization()
-            print("Authorization request finished.")
+            Spacer()
 
-            // 3. Fetch data
-            print("Fetching workouts...")
-            let fetchedWorkouts = try await healthManager.fetchWorkouts()
-            print("Found \(fetchedWorkouts.count) workouts.")
+            if browser.selectedFilter != .all {
+                Button {
+                    browser.selectFilter(.all)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityLabel("Clear activity filter")
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
 
-            // 4. Update UI
-            workouts = fetchedWorkouts
+    private func filterMenuItem(_ filter: ActivityFilter) -> some View {
+        Button {
+            browser.selectFilter(filter)
+        } label: {
+            if browser.selectedFilter == filter {
+                Label(filter.rawValue, systemImage: "checkmark")
+            } else {
+                Text(filter.rawValue)
+            }
+        }
+    }
 
-        } catch {
-            print("CRITICAL ERROR: \(error.localizedDescription)")
-            errorMessage = error.localizedDescription
+    private var monthSections: [WorkoutMonthSection] {
+        let grouped = Dictionary(grouping: browser.workouts.dropFirst()) { workout in
+            let calendar = Calendar.current
+            return calendar.dateInterval(of: .month, for: workout.startDate)?.start
+                ?? calendar.startOfDay(for: workout.startDate)
+        }
+        return grouped.keys.sorted(by: >).map { date in
+            WorkoutMonthSection(date: date, workouts: grouped[date] ?? [])
         }
     }
 }
 
+private struct WorkoutMonthSection: Identifiable {
+    let date: Date
+    let workouts: [HKWorkout]
+
+    var id: Date {
+        date
+    }
+}
+
 struct WorkoutRow: View {
-    // Inputs
     let workout: HKWorkout
     var healthManager: HealthManager
 
-    // Internal State
     @State private var isExporting = false
     @State private var exportSheetState: ExportSheetState?
     @State private var activeExportID: UUID?
     @State private var showError = false
 
-    /// New State for Debugging
     @State private var showDebug = false
 
     var body: some View {
         HStack {
-            // 1. Icon
             Image(systemName: WorkoutActivityIconMapper.systemName(for: workout.workoutActivityType))
                 .font(.title2)
                 .foregroundColor(.blue)
                 .frame(width: 40)
 
-            // 2. Text Info
             VStack(alignment: .leading) {
                 Text(workout.workoutActivityType.name)
                     .font(.headline)
@@ -108,15 +185,11 @@ struct WorkoutRow: View {
 
             Spacer()
 
-            // 3. Duration
             Text(formatDuration(workout.duration))
                 .font(.subheadline)
                 .monospacedDigit()
 
-            // --- BUTTONS ---
-            HStack(spacing: 15) { // Group buttons together
-
-                // A. Debug Button (New)
+            HStack(spacing: 15) {
                 Button {
                     showDebug = true
                 } label: {
@@ -125,7 +198,6 @@ struct WorkoutRow: View {
                 }
                 .buttonStyle(.plain)
 
-                // B. Export Button
                 if isExporting {
                     ProgressView()
                 } else {
@@ -177,11 +249,7 @@ struct WorkoutRow: View {
                 }
             }
             .padding(.leading, 10)
-        } // End Main HStack
-
-        // --- Modifiers ---
-
-        // 1. The Share Sheet
+        }
         .sheet(
             item: $exportSheetState,
             onDismiss: {
@@ -198,12 +266,10 @@ struct WorkoutRow: View {
             }
         )
 
-        // 2. The Debug Sheet (New)
         .sheet(isPresented: $showDebug) {
             DebugView(workout: workout, healthManager: healthManager)
         }
 
-        // 3. Error Alert
         .alert("Export Failed", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {

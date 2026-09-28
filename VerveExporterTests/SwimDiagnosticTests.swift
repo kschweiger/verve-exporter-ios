@@ -43,7 +43,8 @@ final class SwimDiagnosticTests: XCTestCase {
         XCTAssertEqual(otherEvents[0]["type"] as? String, "pause")
         XCTAssertNotNil(json["activities"] as? [[String: Any]])
         XCTAssertNotNil(json["totals"] as? [[String: Any]])
-        XCTAssertNotNil(ISO8601DateFormatter().date(from: try XCTUnwrap(json["generatedAt"] as? String)))
+        let generatedAt = try XCTUnwrap(json["generatedAt"] as? String)
+        XCTAssertNotNil(ISO8601DateFormatter().date(from: generatedAt))
     }
 
     func testDiagnosticWithNoEventsOrMetadataEmitsEmptyCollections() throws {

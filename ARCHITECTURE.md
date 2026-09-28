@@ -12,7 +12,8 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 
 - `VerveExporter.xcodeproj/`: Xcode project and scheme metadata.
 - `VerveExporter/VerveExporterApp.swift`: SwiftUI app entry point.
-- `VerveExporter/ContentView.swift`: Main workout list UI, export button, share sheet, and basic workout display helpers.
+- `VerveExporter/ContentView.swift`: Activity browser UI, filter control, month sections, export button, share sheet, and workout display helpers.
+- `VerveExporter/WorkoutBrowserModel.swift`: Bounded workout loading, Verve type filtering, incremental reveal, and browser loading state.
 - `VerveExporter/DebugView.swift`: JSON preview sheet that reuses the export path and shows generated output for inspection.
 - `VerveExporter/HealthManager.swift`: HealthKit authorization, workout queries, route and heart-rate queries, GeoJSON assembly, and export file generation.
 - `VerveExporter/HealthManager+Swimming.swift`: Swimming lap, set, and workout metadata construction.
@@ -26,7 +27,7 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 
 ## Known Layers Or Modules
 
-- UI layer: SwiftUI views in `ContentView.swift` and `DebugView.swift`.
+- UI layer: SwiftUI views in `ContentView.swift` and `DebugView.swift`, with browsing state in `WorkoutBrowserModel.swift`.
 - HealthKit access layer: `HealthManager`, `HKHealthStore`, workout queries, route queries, and heart-rate sample queries.
 - Export construction layer: `WorkoutFeatureBuilder`, swimming metadata construction, and activity mappings feed the `GeoJSON.swift` models.
 - Export model layer: `GeoJSON.swift` structures, aligned with the Verve backend Pydantic schema in `/Users/korbinian/Code/verve/backend/verve_backend/schema/verve_file.py`.
@@ -34,7 +35,7 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 
 ## Dependency Direction
 
-SwiftUI views depend on `HealthManager` and the workout icon mapping. `HealthManager` and its same-type extensions depend on HealthKit/CoreLocation, activity mappings, feature construction, and the export model structs. `GeoJSON.swift` should stay independent of HealthKit so encoding can be tested without HealthKit data.
+SwiftUI views depend on `WorkoutBrowserModel`, `HealthManager`, and the workout icon mapping. The browser model uses bounded HealthKit workout queries and the shared Verve activity mapper. `HealthManager` and its same-type extensions depend on HealthKit/CoreLocation, activity mappings, feature construction, and the export model structs. `GeoJSON.swift` should stay independent of HealthKit so encoding can be tested without HealthKit data.
 
 ## Boundaries Agents Must Respect
 

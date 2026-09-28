@@ -51,12 +51,13 @@ class HealthManager {
         try await healthStore.requestAuthorization(toShare: [], read: readTypes)
     }
 
-    func fetchWorkouts() async throws -> [HKWorkout] {
-        let sortDescriptor = SortDescriptor(\HKWorkout.endDate, order: .reverse)
+    func fetchWorkouts(limit: Int) async throws -> [HKWorkout] {
+        let endDateSort = SortDescriptor(\HKWorkout.endDate, order: .reverse)
+        let startDateSort = SortDescriptor(\HKWorkout.startDate, order: .reverse)
         let query = HKSampleQueryDescriptor(
             predicates: [.workout(nil)],
-            sortDescriptors: [sortDescriptor],
-            limit: nil
+            sortDescriptors: [endDateSort, startDateSort],
+            limit: limit
         )
         return try await query.result(for: healthStore)
     }

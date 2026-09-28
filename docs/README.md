@@ -5,9 +5,9 @@ Repository-local documentation is the system of record for future agents. If dur
 ## Core Documents
 
 - `../AGENTS.md`: Short agent entry point and table of contents.
-- `../ARCHITECTURE.md`: Repository layout, including focused HealthKit/export helper files, stack, boundaries, dependency direction, and validation boundaries.
+- `../ARCHITECTURE.md`: Repository layout, including the activity browser model and focused HealthKit/export helper files, stack, boundaries, dependency direction, and validation boundaries.
 - `PRINCIPLES.md`: Harness operating principles.
-- `TESTING.md`: Safe validation commands, pre-commit lint/format checks, synthetic export and swim diagnostic XCTest coverage, and real-device smoke checks.
+- `TESTING.md`: Safe validation commands, pre-commit lint/format checks, synthetic export and swim diagnostic XCTest coverage, and real-device browser/export smoke checks.
 - `SECURITY.md`: Secrets, HealthKit data, synthetic fixture rules, and forbidden handling patterns.
 - `QUALITY_SCORE.md`: Lightweight quality score, measured app coverage, gaps, and next actions.
 - `DECISIONS.md`: Compact decision log, including export time zone, moving-duration omission, and synthetic test choices.
@@ -21,6 +21,7 @@ Repository-local documentation is the system of record for future agents. If dur
 
 ## Key Project References
 
+- `product-specs/activity-browser.md`: Recent workout browsing, Verve type filtering, month grouping, and incremental reveal.
 - `product-specs/verve-geojson-format.md`: Verve GeoJSON export contract, omitted moving duration, timestamp rules, and empty-workout behavior.
 - `product-specs/verve-swimming-metadata.md`: Shareable Verve swimming metadata contract.
-- `references/healthkit.md`: HealthKit documentation links, current usage, synthetic test guidance, and moving-duration research backlog.
+- `references/healthkit.md`: HealthKit documentation links, bounded workout queries, synthetic test guidance, and moving-duration research backlog.

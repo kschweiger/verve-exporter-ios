@@ -15,7 +15,7 @@ Current code in `VerveExporter/HealthManager.swift` uses:
 - `HKHealthStore` as the HealthKit entry point.
 - `HKHealthStore.isHealthDataAvailable()` before requesting data.
 - `requestAuthorization(toShare:read:)` with read types for workouts, workout routes, heart rate, swimming distance, and swimming stroke count.
-- `HKSampleQueryDescriptor` to fetch `HKWorkout` samples sorted by end date descending.
+- `HKSampleQueryDescriptor` to fetch a bounded prefix of `HKWorkout` samples sorted by end date descending. The activity browser grows the prefix when a selected Verve type is rare, so matching happens before the ten-workout display limit.
 - `HKSampleQueryDescriptor` to fetch `HKWorkoutRoute` samples for a selected workout.
 - `HKWorkoutRouteQuery` to stream batches of `CLLocation` values from a route.
 - `HKSampleQueryDescriptor` to fetch `HKQuantitySample` heart-rate samples between workout start and end.
@@ -60,14 +60,17 @@ Never assume authorization succeeds. HealthKit may return no samples because the
 Workout list:
 
 ```swift
-let sortDescriptor = SortDescriptor(\HKWorkout.endDate, order: .reverse)
+let endDateSort = SortDescriptor(\HKWorkout.endDate, order: .reverse)
+let startDateSort = SortDescriptor(\HKWorkout.startDate, order: .reverse)
 let query = HKSampleQueryDescriptor(
     predicates: [.workout(nil)],
-    sortDescriptors: [sortDescriptor],
-    limit: nil
+    sortDescriptors: [endDateSort, startDateSort],
+    limit: 11
 )
 let workouts = try await query.result(for: healthStore)
 ```
+
+The browser requests one extra matching workout to decide whether `Show more` is available. Verve type filtering uses `VerveActivityMapper` on workout metadata; route and heart-rate queries still run only for an individual export or debug preview.
 
 Route lookup for one workout:
 

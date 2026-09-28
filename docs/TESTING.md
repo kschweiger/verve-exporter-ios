@@ -102,6 +102,15 @@ Manual real-device smoke test:
 5. Export/share the JSON and validate it against `docs/product-specs/verve-geojson-format.md`.
 6. Test an indoor/no-route workout and confirm the app either exports a no-geometry feature intentionally or reports a clear error.
 
+Activity browser smoke check on a device with several workout types and months:
+
+1. Confirm the newest workout appears once in `Latest activity` with the same compact export icon as history rows; the first screen shows at most ten workouts.
+2. Select a Verve activity type whose newest workout is older than the newest ten overall. Confirm the newest matching workout appears first and all visible rows match the selected type.
+3. Confirm month headings match the local calendar, then use `Show more` to reveal up to ten additional matching workouts.
+4. Clear the active filter with the one-tap clear button. Confirm `All activities` and the newest ten workouts return.
+5. Select a type with no workouts, if available, and confirm the empty state offers `Clear filter`.
+6. Pull to refresh and confirm the current filter remains selected and the list resets to ten workouts.
+
 ## Expensive Or Unsafe Checks
 
 - Do not run tests that export, upload, or commit real personal workouts without explicit approval.
