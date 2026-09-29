@@ -19,18 +19,24 @@ struct ContentView: View {
 
                 List {
                     if let latest = browser.workouts.first {
-                        Section("Latest activity") {
+                        Section {
                             WorkoutRow(
                                 workout: latest,
                                 healthManager: browser.healthManager
                             )
+                        } header: {
+                            Text("Latest activity")
+                                .foregroundStyle(Color("VerveBrown"))
                         }
 
                         ForEach(monthSections) { month in
-                            Section(month.date.formatted(.dateTime.month(.wide).year())) {
+                            Section {
                                 ForEach(month.workouts, id: \.uuid) { workout in
                                     WorkoutRow(workout: workout, healthManager: browser.healthManager)
                                 }
+                            } header: {
+                                Text(month.date.formatted(.dateTime.month(.wide).year()))
+                                    .foregroundStyle(Color("VerveBrown"))
                             }
                         }
                     } else if browser.isLoading {
@@ -76,11 +82,14 @@ struct ContentView: View {
                         .disabled(browser.isLoadingMore)
                     }
                 }
+                .scrollContentBackground(.hidden)
+                .background(Color("VerveLight"))
                 .refreshable {
                     await browser.reload()
                 }
             }
-            .navigationTitle("Activities")
+            .background(Color("VerveLight"))
+            .toolbar(.hidden, for: .navigationBar)
             .task {
                 await browser.loadInitially()
             }
@@ -93,6 +102,7 @@ struct ContentView: View {
                 Text(browser.errorMessage ?? "Unknown error")
             }
         }
+        .preferredColorScheme(.light)
     }
 
     private var filterBar: some View {
@@ -173,7 +183,7 @@ struct WorkoutRow: View {
         HStack {
             Image(systemName: WorkoutActivityIconMapper.systemName(for: workout.workoutActivityType))
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundStyle(Color("VerveDark"))
                 .frame(width: 40)
 
             VStack(alignment: .leading) {
@@ -182,7 +192,7 @@ struct WorkoutRow: View {
 
                 Text(workout.startDate.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundStyle(Color("VerveBrown").opacity(0.8))
             }
 
             Spacer()
@@ -197,7 +207,7 @@ struct WorkoutRow: View {
                         showDebug = true
                     } label: {
                         Image(systemName: "doc.text.magnifyingglass")
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.tint)
                     }
                     .buttonStyle(.plain)
                 }
@@ -247,13 +257,15 @@ struct WorkoutRow: View {
                         }
                     } label: {
                         Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.blue)
+                            .foregroundStyle(.tint)
                     }
                     .buttonStyle(.plain)
                 }
             }
             .padding(.leading, 10)
         }
+        .foregroundStyle(Color("VerveBrown"))
+        .listRowBackground(Color.white)
         .sheet(
             item: $exportSheetState,
             onDismiss: {

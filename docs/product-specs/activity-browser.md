@@ -16,6 +16,8 @@ Make exporting the newest workout immediate while helping a new user find older 
 - When the selected type has no workouts, show an empty state with a `Clear filter` action. When there are no workouts at all, show a general empty state.
 - Pull to refresh reloads the current filter from the newest workout and resets the displayed count to ten.
 - Keep the existing one-workout export, debug preview, share sheet, and export error behavior.
+- Use the Verve orange accent color (`#F57A07`) for tinted controls and export icons. Use dark green (`#778332`) for workout activity icons so they are distinct from export actions.
+- Use light green (`#EFF3DB`) for the activity screen background and white for workout rows. Omit the large `Activities` title. Show section headings in brown (`#6D5239`) and present this screen in light appearance.
 
 ## Loading And Failure States
 

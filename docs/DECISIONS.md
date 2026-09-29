@@ -4,6 +4,14 @@ This is the compact decision log. Keep entries short. If a decision needs longer
 
 ## Entries
 
+### 2026-09-29: Use the Verve palette in the activity browser
+
+Decision: Set the app accent color to Verve orange (`#F57A07`) for tinted controls and export icons. Use dark green (`#778332`) for workout activity icons, light green (`#EFF3DB`) for the activity screen background, white for workout rows, and brown (`#6D5239`) for section headings. Remove the large navigation title and present the activity browser in light appearance.
+
+Context: The web palette defines this orange, and the activity browser previously used hard-coded blue for its primary icons.
+
+Consequences: Palette colors live in the asset catalog. Green activity icons remain distinct from orange export actions and are clearer against white rows than neon green. Brown headings remain legible against the light green screen.
+
 ### 2026-09-28: Browse by Verve activity type and reveal ten workouts at a time
 
 Decision: Use the top-level `VerveActivityMapper` type for a single activity filter, show the newest matching workout first, and reveal older matches ten at a time under month headings. Keep an explicit one-tap clear action for the selected filter.

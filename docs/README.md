@@ -7,10 +7,10 @@ Repository-local documentation is the system of record for future agents. If dur
 - `../AGENTS.md`: Short agent entry point and table of contents.
 - `../ARCHITECTURE.md`: Repository layout, including the activity browser model and focused HealthKit/export helper files, stack, boundaries, dependency direction, and validation boundaries.
 - `PRINCIPLES.md`: Harness operating principles.
-- `TESTING.md`: Safe validation commands, pre-commit lint/format checks, synthetic export and swim diagnostic XCTest coverage, and real-device browser/export smoke checks.
+- `TESTING.md`: Safe validation commands, pre-commit lint/format checks and sandbox limits, synthetic export and swim diagnostic XCTest coverage, and real-device browser/export smoke checks.
 - `SECURITY.md`: Secrets, HealthKit data, synthetic fixture rules, and forbidden handling patterns.
 - `QUALITY_SCORE.md`: Lightweight quality score, measured app coverage, gaps, and next actions.
-- `DECISIONS.md`: Compact decision log, including export time zone, moving-duration omission, and synthetic test choices.
+- `DECISIONS.md`: Compact decision log, including distinct activity and export colors, export time zone, moving-duration omission, and synthetic test choices.
 
 ## Work Areas
 

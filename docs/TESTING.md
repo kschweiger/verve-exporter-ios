@@ -80,6 +80,9 @@ and `swiftlint` executables must be available on `PATH` because these hooks use
 the pre-commit `unsupported` environment. Run them directly with
 `uvx pre-commit run -a` or through `make validate-lint`.
 
+In a read-only agent sandbox, `make validate-lint` can fail before hooks run
+because `uvx` cannot access its cache. Re-run outside that sandbox when allowed.
+
 Build:
 
 ```bash
