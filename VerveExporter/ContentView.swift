@@ -157,6 +157,8 @@ private struct WorkoutMonthSection: Identifiable {
 }
 
 struct WorkoutRow: View {
+    private let isDebugPreviewEnabled = false
+
     let workout: HKWorkout
     var healthManager: HealthManager
 
@@ -190,13 +192,15 @@ struct WorkoutRow: View {
                 .monospacedDigit()
 
             HStack(spacing: 15) {
-                Button {
-                    showDebug = true
-                } label: {
-                    Image(systemName: "doc.text.magnifyingglass")
-                        .foregroundColor(.orange)
+                if isDebugPreviewEnabled {
+                    Button {
+                        showDebug = true
+                    } label: {
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .foregroundColor(.orange)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 if isExporting {
                     ProgressView()
