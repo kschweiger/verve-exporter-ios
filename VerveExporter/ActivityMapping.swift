@@ -80,7 +80,6 @@ enum WorkoutActivityIconMapper {
         (.functionalStrengthTraining, "dumbbell.fill"),
         (.yoga, "figure.yoga"),
         (.crossTraining, "figure.cross.training"),
-        (.dance, "figure.dance"),
         (.rowing, "figure.rower"),
         (.coreTraining, "figure.core.training"),
         (.cooldown, "figure.cooldown"),
