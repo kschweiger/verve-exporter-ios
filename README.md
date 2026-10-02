@@ -1,13 +1,18 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/kschweiger/verve-exporter-ios/blob/5bb3cb71dfa4970156462bf30ffac1ec8ae682bf/icons/AppIcon.appiconset/verve-dark.png" />
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/kschweiger/verve-exporter-ios/blob/5bb3cb71dfa4970156462bf30ffac1ec8ae682bf/icons/AppIcon.appiconset/verve-light.png" />
-    <img alt="verve exporter logo" src="https://github.com/kschweiger/verve-exporter-ios/blob/5bb3cb71dfa4970156462bf30ffac1ec8ae682bf/icons/AppIcon.appiconset/verve-light.png" width="96" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/kschweiger/verve-exporter-ios/blob/4b582111d241a488c9bd13ad201f15cfd2d7cd1d/docs/assets/icons/AppIcon.appiconset/verve-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/kschweiger/verve-exporter-ios/blob/4b582111d241a488c9bd13ad201f15cfd2d7cd1d/docs/assets/icons/AppIcon.appiconset/verve-light.png" />
+    <img alt="verve exporter logo" src="https://github.com/kschweiger/verve-exporter-ios/blob/4b582111d241a488c9bd13ad201f15cfd2d7cd1d/docs/assets/icons/AppIcon.appiconset/verve-light.png" width="96" />
 
   </picture>
 </p>
 
 <h1 align="center">Verve Exporter</h1>
+
+<p align="center">
+  <img src="https://github.com/kschweiger/verve-exporter-ios/blob/4b582111d241a488c9bd13ad201f15cfd2d7cd1d/docs/assets/screenshots/base.png" width="300" alt="Verve Exporter default view">
+  <img src="https://github.com/kschweiger/verve-exporter-ios/blob/4b582111d241a488c9bd13ad201f15cfd2d7cd1d/docs/assets/screenshots/filtered.png" width="300" alt="Verve Exporter filtered view">
+</p>
 
 Verve exporter is a lightweight open-source utility for iOS that exports activies tracked on you phone or watch as json files.
 
@@ -36,14 +41,16 @@ A workout without route or coordinates has a `null` geometry. Heart-rate samples
     "durationSeconds": 2700,
     "stats": { "heartRate": { "avg": 112, "max": 148 } }
   },
-  "features": [{
-    "type": "Feature",
-    "geometry": null,
-    "properties": {
-      "coordTimes": ["2026-05-12T17:00:20+02:00", "..."],
-      "heartRates": [98, "..."]
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "coordTimes": ["2026-05-12T17:00:20+02:00", "..."],
+        "heartRates": [98, "..."]
+      }
     }
-  }]
+  ]
 }
 ```
 
@@ -65,17 +72,19 @@ GPS activities include a `LineString`; each coordinate is `[longitude, latitude,
     "totalDistanceMeters": 6200,
     "stats": { "heartRate": { "avg": 126, "max": 161 } }
   },
-  "features": [{
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[11.58, 48.14, 520], [11.59, 48.15, 536], "..."]
-    },
-    "properties": {
-      "coordTimes": ["2026-05-12T10:00:00+02:00", "2026-05-12T10:00:12+02:00", "..."],
-      "heartRates": [104, 108, "..."]
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[11.58, 48.14, 520], [11.59, 48.15, 536], "..."]
+      },
+      "properties": {
+        "coordTimes": ["2026-05-12T10:00:00+02:00", "2026-05-12T10:00:12+02:00", "..."],
+        "heartRates": [104, 108, "..."]
+      }
     }
-  }]
+  ]
 }
 ```
 
@@ -104,19 +113,38 @@ Pool workouts have no route geometry. Available lap and set details are carried 
         "lapCount": 4,
         "strokeStyles": ["freestyle"],
         "laps": [
-          { "index": 0, "durationSeconds": 32, "distanceMeters": 25, "strokeStyle": "freestyle", "strokeCount": 18, "swolf": 50 },
+          {
+            "index": 0,
+            "durationSeconds": 32,
+            "distanceMeters": 25,
+            "strokeStyle": "freestyle",
+            "strokeCount": 18,
+            "swolf": 50
+          },
           "..."
         ],
         "sets": [
-          { "index": 0, "lapStartIndex": 0, "lapEndIndex": 3, "lapCount": 4, "distanceMeters": 100 },
+          {
+            "index": 0,
+            "lapStartIndex": 0,
+            "lapEndIndex": 3,
+            "lapCount": 4,
+            "distanceMeters": 100
+          },
           "..."
         ]
       }
     }
   },
-  "features": [{ "type": "Feature", "geometry": null, "properties": {
-    "coordTimes": ["2026-05-12T16:00:05+02:00", "..."],
-    "heartRates": [118, "..."]
-  }}]
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "coordTimes": ["2026-05-12T16:00:05+02:00", "..."],
+        "heartRates": [118, "..."]
+      }
+    }
+  ]
 }
 ```
