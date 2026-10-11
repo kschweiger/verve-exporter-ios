@@ -89,6 +89,7 @@ final class ExportTests: XCTestCase {
             heartRates: [heartRate(0, bpm: 100, start: winter)]
         )
         let properties = try XCTUnwrap(try jsonObject(export.data)["properties"] as? [String: Any])
+        XCTAssertEqual(properties["timezone"] as? String, "Europe/Berlin")
         XCTAssertEqual(properties["startTime"] as? String, "2026-01-15T13:00:00+01:00")
         XCTAssertTrue(export.fileName.hasPrefix("2026-01-15_13-00"))
 
@@ -99,8 +100,30 @@ final class ExportTests: XCTestCase {
             heartRates: [heartRate(0, bpm: 100, start: summer)]
         )
         let summerProperties = try XCTUnwrap(try jsonObject(summerExport.data)["properties"] as? [String: Any])
+        XCTAssertEqual(summerProperties["timezone"] as? String, "Europe/Berlin")
         XCTAssertEqual(summerProperties["startTime"] as? String, "2026-07-15T14:00:00+02:00")
         XCTAssertTrue(summerExport.fileName.hasPrefix("2026-07-15_14-00"))
+    }
+
+    func testRecordedUTCTimeZoneIsExported() throws {
+        let export = try buildExport(
+            for: workout(type: .running, metadata: [HKMetadataKeyTimeZone: "UTC"]),
+            heartRates: [heartRate(0, bpm: 100)],
+            fallbackTimeZone: XCTUnwrap(TimeZone(identifier: "Europe/Berlin"))
+        )
+        let properties = try XCTUnwrap(try jsonObject(export.data)["properties"] as? [String: Any])
+        XCTAssertEqual(properties["timezone"] as? String, "UTC")
+        XCTAssertTrue((properties["startTime"] as? String)?.hasSuffix("Z") == true)
+    }
+
+    func testRecordedFixedOffsetOmitsIANATimeZone() throws {
+        let export = try buildExport(
+            for: workout(type: .running, metadata: [HKMetadataKeyTimeZone: "GMT+0200"]),
+            heartRates: [heartRate(0, bpm: 100)]
+        )
+        let properties = try XCTUnwrap(try jsonObject(export.data)["properties"] as? [String: Any])
+        XCTAssertNil(properties["timezone"])
+        XCTAssertTrue((properties["startTime"] as? String)?.hasSuffix("+02:00") == true)
     }
 
     func testMissingWorkoutTimeZoneUsesProvidedFallback() throws {
@@ -110,6 +133,7 @@ final class ExportTests: XCTestCase {
             fallbackTimeZone: XCTUnwrap(TimeZone(secondsFromGMT: 7200))
         )
         let properties = try XCTUnwrap(try jsonObject(export.data)["properties"] as? [String: Any])
+        XCTAssertNil(properties["timezone"])
         XCTAssertTrue((properties["startTime"] as? String)?.hasSuffix("+02:00") == true)
         let expectedDate = DateFormatter()
         expectedDate.dateFormat = "yyyy-MM-dd_HH-mm"

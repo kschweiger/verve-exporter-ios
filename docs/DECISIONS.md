@@ -60,7 +60,7 @@ Follow-up checks: Add automated tests that encode sample Verve JSON and validate
 
 ### 2026-09-27: Format export timestamps in the workout time zone
 
-Decision: Use a valid workout `HKMetadataKeyTimeZone` identifier for all exported timestamps and the filename date; fall back to the device's current time zone when unavailable. Emit ISO-8601 offsets without a separate time zone field.
+Decision: Use a valid workout `HKMetadataKeyTimeZone` identifier for all exported timestamps and the filename date; fall back to the device's current time zone when unavailable. Emit ISO-8601 offsets. The original choice to omit a separate time zone field is superseded by the 2026-10-11 decision below.
 
 Context: UTC timestamps preserve instants but do not show the workout's local clock time in the exported file. The existing Verve schema accepts timestamps with offsets.
 
@@ -81,3 +81,11 @@ Decision: Add `Makefile` targets for harness validation, Xcode scheme inspection
 Context: Future agents need stable commands that match the repository docs instead of reconstructing long `xcodebuild` invocations.
 
 Consequences: Prefer `make validate-docs`, `make validate-build`, and `make validate` in agent workflows. Keep `docs/TESTING.md` synchronized when targets change.
+
+### 2026-10-11: Export recorded IANA timezone separately
+
+Decision: Emit optional root `timezone` from workout `HKMetadataKeyTimeZone` only when it is a recognized IANA name, including `UTC`. Preserve its spelling and omit missing, invalid, or fixed-offset names.
+
+Reason: The backend now accepts an IANA timezone so activities retain their timezone rules rather than just a timestamp offset.
+
+Consequences: Existing timestamp and filename fallback stays in place, but the device fallback never claims to be the recorded timezone. HealthKit describes object creation timezone, which may differ for imported workouts.

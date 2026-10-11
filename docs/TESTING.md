@@ -59,7 +59,7 @@ Automated export coverage:
 - No-route heart-rate output and rejection of workouts with no route or heart-rate samples.
 - Synthetic swimming lap/set metadata, ordering, rest intervals, mixed styles, and incomplete inputs.
 - Swim diagnostic event grouping and metadata representation.
-- Indoor/outdoor activity mapping and workout time-zone selection with fallback.
+- Indoor/outdoor activity mapping and workout time-zone selection with fallback, recorded IANA timezone encoding, and omission of missing or fixed-offset timezone metadata.
 
 `HKWorkout` rejects an invalid `HKMetadataKeyTimeZone` value at construction, so synthetic tests cover a missing time zone fallback. Invalid persisted metadata still uses the same fallback branch in the exporter.
 
@@ -90,8 +90,8 @@ make validate-build
 xcodebuild -project VerveExporter.xcodeproj -scheme VerveExporter -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/VerveExporter-DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-`make validate` runs documentation and generic iOS build validation. It does
-not run pre-commit hooks or XCTest. No typecheck-only command or CI configuration
+`make validate` runs documentation, pre-commit lint, and generic iOS build validation. It does
+not run XCTest. No typecheck-only command or CI configuration
 exists at bootstrap.
 
 ## Smoke Tests

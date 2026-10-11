@@ -34,24 +34,25 @@ properties.verveVersion == "1.0"
 
 Use camelCase aliases in exported JSON.
 
-| Field | Required | Type | Unit / meaning |
-| --- | --- | --- | --- |
-| `verveVersion` | yes | string literal | Must be `"1.0"`. |
-| `generator` | yes | string | Exporter name. Current iOS value is `VerveExporteriOS`. |
-| `name` | yes | string | Activity display name. |
-| `description` | no | string or null | Optional activity description. |
-| `activityType` | yes | string | Verve activity type, such as `Cycling` or `Foot Sports`. |
-| `activitySubType` | no | string or null | Verve subtype, such as `Run`, `Indoor`, or `Treadmill`. |
-| `startTime` | yes | ISO-8601 string | Activity start time. |
-| `durationSeconds` | yes | number | Total workout duration in seconds. |
-| `movingDurationSeconds` | no | number or null | Moving duration in seconds. The iOS exporter currently omits it. |
-| `totalDistanceMeters` | no | number or null | Total distance in meters. |
-| `totalEnergyKcal` | no | number or null | Active energy in kcal. |
-| `elevationGain` | no | number or null | Elevation gain in meters. |
-| `elevationLoss` | no | number or null | Elevation loss in meters. |
-| `stats` | yes | object | Aggregate metric summaries. |
-| `equipment` | no | array or null | Snapshot of associated equipment. |
-| `metadata` | no | object | Canonical activity metadata envelope. Current documented target: `SwimmingMetaData`. |
+| Field                   | Required | Type            | Unit / meaning                                                                       |
+| ----------------------- | -------- | --------------- | ------------------------------------------------------------------------------------ |
+| `verveVersion`          | yes      | string literal  | Must be `"1.0"`.                                                                     |
+| `generator`             | yes      | string          | Exporter name. Current iOS value is `VerveExporteriOS`.                              |
+| `name`                  | yes      | string          | Activity display name.                                                               |
+| `description`           | no       | string or null  | Optional activity description.                                                       |
+| `activityType`          | yes      | string          | Verve activity type, such as `Cycling` or `Foot Sports`.                             |
+| `activitySubType`       | no       | string or null  | Verve subtype, such as `Run`, `Indoor`, or `Treadmill`.                              |
+| `startTime`             | yes      | ISO-8601 string | Activity start time.                                                                 |
+| `durationSeconds`       | yes      | number          | Total workout duration in seconds.                                                   |
+| `movingDurationSeconds` | no       | number or null  | Moving duration in seconds. The iOS exporter currently omits it.                     |
+| `totalDistanceMeters`   | no       | number or null  | Total distance in meters.                                                            |
+| `totalEnergyKcal`       | no       | number or null  | Active energy in kcal.                                                               |
+| `elevationGain`         | no       | number or null  | Elevation gain in meters.                                                            |
+| `elevationLoss`         | no       | number or null  | Elevation loss in meters.                                                            |
+| `stats`                 | yes      | object          | Aggregate metric summaries.                                                          |
+| `equipment`             | no       | array or null   | Snapshot of associated equipment.                                                    |
+| `metadata`              | no       | object          | Canonical activity metadata envelope. Current documented target: `SwimmingMetaData`. |
+| `timezone`              | no       | string or null  | Recorded IANA timezone; omitted when unavailable.                                                       |
 
 The backend schema field is `moving_duration`, serialized as `movingDurationSeconds`. The iOS exporter currently emits neither this field nor the old unsupported `movingDistanceSeconds` field. For a moving track, the backend derives moving duration when the field is absent.
 
@@ -59,7 +60,7 @@ The backend schema field is `moving_duration`, serialized as `movingDurationSeco
 
 The iOS exporter writes all GeoJSON timestamps with an ISO-8601 UTC offset. This includes root `startTime`, feature `coordTimes`, and swimming lap and set `startTime` and `endTime`. UTC may appear as `Z`. The offset changes for each timestamp when daylight saving rules require it; formatting does not change the underlying instant.
 
-Use the workout's `HKMetadataKeyTimeZone` value when it is a valid time zone identifier. If it is missing or invalid, use the device's current time zone at export time. The export filename's date uses the same selected time zone. No separate time zone field is emitted.
+Use the workout's `HKMetadataKeyTimeZone` value when it is a valid time zone identifier. If it is missing or invalid, use the device's current time zone at export time. The export filename's date uses the same selected time zone. Root `properties.timezone` contains the original workout `HKMetadataKeyTimeZone` string only when it is a recognized IANA identifier (including `UTC`). Missing, invalid, or fixed-offset names are omitted. The timestamp/device fallback is never exported as the recorded timezone. Apple defines this metadata as the timezone when the HealthKit object was created; imported workouts may therefore differ from the original recording location.
 
 ## Metric Summary
 
@@ -105,11 +106,11 @@ Example:
 
 Envelope fields:
 
-| Field | Type | Required | Unit / meaning |
-| --- | --- | --- | --- |
-| `target` | string | yes | Metadata target. Swimming metadata uses `"SwimmingMetaData"`. |
-| `version` | string | yes | Metadata envelope version. Current swimming metadata value is `"1.0"`. |
-| `data` | object | yes | Source-neutral metadata payload for the target. |
+| Field     | Type   | Required | Unit / meaning                                                         |
+| --------- | ------ | -------- | ---------------------------------------------------------------------- |
+| `target`  | string | yes      | Metadata target. Swimming metadata uses `"SwimmingMetaData"`.          |
+| `version` | string | yes      | Metadata envelope version. Current swimming metadata value is `"1.0"`. |
+| `data`    | object | yes      | Source-neutral metadata payload for the target.                        |
 
 ## Swimming Metadata
 
@@ -117,16 +118,16 @@ Swimming workouts may include source-neutral metadata under `properties.metadata
 
 Swimming metadata data fields:
 
-| Field | Type | Required | Unit / meaning |
-| --- | --- | --- | --- |
-| `poolLengthMeters` | number | no | Pool length in meters. Omit for open-water swims or when unknown. |
-| `totalStrokeCount` | integer | no | Total counted swim strokes for the whole workout. |
-| `averageSwolf` | number | no | Average swim efficiency score across exported laps. |
-| `lapCount` | integer | no | Number of exported lap objects. |
-| `setCount` | integer | no | Number of exported set objects. |
-| `strokeStyles` | array of strings | no | Distinct stroke styles present in laps or sets. |
-| `laps` | array | no | Atomic lap records, usually one pool length each. |
-| `sets` | array | no | Higher-level groupings of one or more laps. |
+| Field              | Type             | Required | Unit / meaning                                                    |
+| ------------------ | ---------------- | -------- | ----------------------------------------------------------------- |
+| `poolLengthMeters` | number           | no       | Pool length in meters. Omit for open-water swims or when unknown. |
+| `totalStrokeCount` | integer          | no       | Total counted swim strokes for the whole workout.                 |
+| `averageSwolf`     | number           | no       | Average swim efficiency score across exported laps.               |
+| `lapCount`         | integer          | no       | Number of exported lap objects.                                   |
+| `setCount`         | integer          | no       | Number of exported set objects.                                   |
+| `strokeStyles`     | array of strings | no       | Distinct stroke styles present in laps or sets.                   |
+| `laps`             | array            | no       | Atomic lap records, usually one pool length each.                 |
+| `sets`             | array            | no       | Higher-level groupings of one or more laps.                       |
 
 Validity rule: `properties.metadata` is optional. If present for swimming, it must contain `target: "SwimmingMetaData"`, `version: "1.0"`, and a `data` object with at least one meaningful swim data field. Meaningful fields are:
 
@@ -161,34 +162,34 @@ Stroke style values use lowercase strings:
 
 Swim lap fields:
 
-| Field | Type | Required | Unit / meaning |
-| --- | --- | --- | --- |
-| `index` | integer | yes | Zero-based lap array index within the workout. |
-| `startTime` | string | no | ISO-8601 lap start time. |
-| `endTime` | string | no | ISO-8601 lap end time. |
-| `durationSeconds` | number | no | Lap duration in seconds. |
-| `distanceMeters` | number | no | Lap distance in meters. |
-| `strokeStyle` | string | no | Stroke style enum value. |
-| `strokeCount` | integer | no | Stroke count for this lap. |
-| `swolf` | number | no | SWOLF score for this lap. |
-| `restAfterSeconds` | number | no | Time from this lap end to the next lap start. |
+| Field              | Type    | Required | Unit / meaning                                 |
+| ------------------ | ------- | -------- | ---------------------------------------------- |
+| `index`            | integer | yes      | Zero-based lap array index within the workout. |
+| `startTime`        | string  | no       | ISO-8601 lap start time.                       |
+| `endTime`          | string  | no       | ISO-8601 lap end time.                         |
+| `durationSeconds`  | number  | no       | Lap duration in seconds.                       |
+| `distanceMeters`   | number  | no       | Lap distance in meters.                        |
+| `strokeStyle`      | string  | no       | Stroke style enum value.                       |
+| `strokeCount`      | integer | no       | Stroke count for this lap.                     |
+| `swolf`            | number  | no       | SWOLF score for this lap.                      |
+| `restAfterSeconds` | number  | no       | Time from this lap end to the next lap start.  |
 
 Swim set fields:
 
-| Field | Type | Required | Unit / meaning |
-| --- | --- | --- | --- |
-| `index` | integer | yes | Zero-based set array index within the workout. |
-| `startTime` | string | no | ISO-8601 set start time. |
-| `endTime` | string | no | ISO-8601 set end time. |
-| `durationSeconds` | number | no | Set duration in seconds. |
-| `lapStartIndex` | integer | no | Zero-based index of the first included lap. |
-| `lapEndIndex` | integer | no | Zero-based index of the last included lap. |
-| `lapCount` | integer | no | Number of laps in the set. |
-| `distanceMeters` | number | no | Set distance in meters. |
-| `strokeStyle` | string | no | Single style if included laps agree, otherwise `mixed`. |
-| `strokeCount` | integer | no | Total stroke count for the set. |
-| `averageSwolf` | number | no | Average SWOLF for the set. |
-| `restAfterSeconds` | number | no | Time from this set end to the next set start. |
+| Field              | Type    | Required | Unit / meaning                                          |
+| ------------------ | ------- | -------- | ------------------------------------------------------- |
+| `index`            | integer | yes      | Zero-based set array index within the workout.          |
+| `startTime`        | string  | no       | ISO-8601 set start time.                                |
+| `endTime`          | string  | no       | ISO-8601 set end time.                                  |
+| `durationSeconds`  | number  | no       | Set duration in seconds.                                |
+| `lapStartIndex`    | integer | no       | Zero-based index of the first included lap.             |
+| `lapEndIndex`      | integer | no       | Zero-based index of the last included lap.              |
+| `lapCount`         | integer | no       | Number of laps in the set.                              |
+| `distanceMeters`   | number  | no       | Set distance in meters.                                 |
+| `strokeStyle`      | string  | no       | Single style if included laps agree, otherwise `mixed`. |
+| `strokeCount`      | integer | no       | Total stroke count for the set.                         |
+| `averageSwolf`     | number  | no       | Average SWOLF for the set.                              |
+| `restAfterSeconds` | number  | no       | Time from this set end to the next set start.           |
 
 Swimming location is not stored in swimming metadata `data`. Use root `activityType` and `activitySubType` for classification such as `Swimming` + `Indoor`, `Outdoor Pool`, or `Open Water`.
 
@@ -223,13 +224,13 @@ The order is longitude, latitude, elevation. Elevation is stored in meters.
 
 ## Feature Properties
 
-| Field | Required | Type | Meaning |
-| --- | --- | --- | --- |
-| `coordTimes` | yes | array of ISO-8601 strings | One timestamp per point/sample. |
-| `heartRates` | no | array of integer or null | Beats per minute, aligned by index with `coordTimes`. |
-| `cadences` | no | array of integer or null | Cadence, aligned by index. |
-| `powers` | no | array of number or null | Power in watts, aligned by index. |
-| `temperatures` | no | array of number or null | Temperature, aligned by index. |
+| Field          | Required | Type                      | Meaning                                               |
+| -------------- | -------- | ------------------------- | ----------------------------------------------------- |
+| `coordTimes`   | yes      | array of ISO-8601 strings | One timestamp per point/sample.                       |
+| `heartRates`   | no       | array of integer or null  | Beats per minute, aligned by index with `coordTimes`. |
+| `cadences`     | no       | array of integer or null  | Cadence, aligned by index.                            |
+| `powers`       | no       | array of number or null   | Power in watts, aligned by index.                     |
+| `temperatures` | no       | array of number or null   | Temperature, aligned by index.                        |
 
 Validation rule: when an optional per-point array is present, its length must equal `coordTimes.count`. If `geometry` is present, `geometry.coordinates.count` must also equal `coordTimes.count`.
 

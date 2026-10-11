@@ -26,6 +26,8 @@ Completion criteria
 
 ## Completed Plans
 
+- `completed/2026-10-11-recorded-timezone.md`: Exported recorded IANA workout timezone; documented synthetic tests and the existing formatting gap.
+
 - `completed/2026-09-28-activity-browser.md`: Added recent workout browsing, Verve type filtering, month grouping, and incremental reveal.
 - `completed/2026-09-27-pre-commit-lint-cleanup.md`: Aligned SwiftFormat and SwiftLint settings and refactored existing Swift code to satisfy the new hooks without changing app behavior.
 - `completed/2026-09-27-omit-moving-duration.md`: Omitted both moving-time keys from new iOS exports and recorded the missing source as technical debt.
@@ -40,4 +42,4 @@ Completion criteria
 
 - `active/`: Plans currently being executed.
 - `completed/`: Finished plans retained for future agents.
-- `tech-debt-tracker.md`: Known debt, quality gaps, and follow-up work.
+- `tech-debt-tracker.md`: Known debt, quality gaps, follow-up work, and the existing browser property formatting failure (TD-006).

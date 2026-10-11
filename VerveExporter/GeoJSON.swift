@@ -155,6 +155,7 @@ struct VerveProperties: Encodable {
     let activitySubType: String?
 
     let startTime: String
+    let timezone: String?
 
     // -- Dimensions --
     let durationSeconds: Double
@@ -176,7 +177,7 @@ struct VerveProperties: Encodable {
         case generator
         case name, description
         case activityType, activitySubType
-        case startTime
+        case startTime, timezone
         case durationSeconds
         case totalDistanceMeters
         case totalEnergyKcal

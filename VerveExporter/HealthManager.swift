@@ -28,6 +28,7 @@ enum GeoJSONExportError: LocalizedError {
 @Observable
 class HealthManager {
     let healthStore = HKHealthStore()
+    private static let knownTimeZoneIdentifiers = Set(TimeZone.knownTimeZoneIdentifiers).union(["UTC"])
 
     var isHealthKitAvailable: Bool {
         HKHealthStore.isHealthDataAvailable()
@@ -144,6 +145,16 @@ class HealthManager {
         return timeZone
     }
 
+    private func recordedTimeZoneIdentifier(for workout: HKWorkout) -> String? {
+        guard let identifier = workout.metadata?[HKMetadataKeyTimeZone] as? String,
+              Self.knownTimeZoneIdentifiers.contains(identifier),
+              TimeZone(identifier: identifier) != nil
+        else {
+            return nil
+        }
+        return identifier
+    }
+
     private func calculateStats(from values: [Double]) -> MetricSummary? {
         guard !values.isEmpty else {
             return nil
@@ -192,6 +203,7 @@ class HealthManager {
             activityType: mapping.type,
             activitySubType: mapping.subType,
             startTime: isoFormatter.string(from: workout.startDate),
+            timezone: recordedTimeZoneIdentifier(for: workout),
             durationSeconds: workout.duration,
             totalDistanceMeters: totalDistance,
             totalEnergyKcal: totalCalories,

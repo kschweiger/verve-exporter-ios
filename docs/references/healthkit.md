@@ -220,3 +220,9 @@ Use this section as the starting place for future HealthKit investigations.
 - Swimming: use verified pool-lap and segment findings above to design the Verve export shape; still test open-water workouts.
 - Indoor workouts: decide expected behavior for no-geometry features with heart rate only.
 - Permission UX: distinguish no authorization, no data, and unsupported data in user-facing errors.
+
+## Recorded IANA timezone export
+
+Apple defines [`HKMetadataKeyTimeZone`](https://developer.apple.com/documentation/healthkit/hkmetadatakeytimezone) as the user's timezone when the HealthKit object was created. Its value is a string compatible with `NSTimeZone` names; metadata is optional, and creation timezone may differ from recording timezone for imported workouts.
+
+Root `properties.timezone` preserves the workout metadata string only if it belongs to Foundation's known timezone identifiers or is `UTC`, and resolves through `TimeZone(identifier:)`. Fixed-offset strings accepted by Foundation are excluded from this IANA field. Missing or unsupported metadata omits the field; the device's current timezone remains a timestamp and filename fallback only. No additional HealthKit authorization or query is needed.
