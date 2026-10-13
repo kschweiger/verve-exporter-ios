@@ -3,6 +3,7 @@ import HealthKit
 @testable import VerveExporter
 import XCTest
 
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated export tests")
 extension ExportTests {
     func testFractionalSwimmingDistancesAndElapsedSetDurationArePreserved() throws {
         let laps = [
@@ -193,6 +194,7 @@ extension ExportTests {
     }
 }
 
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated export tests")
 extension ExportTests {
     func testReportedZeroSwimmingScalarsRemainMeaningfulWithoutDetails() throws {
         let metadata = SwimmingMetadata(poolLengthMeters: nil, totalStrokeCount: 0, averageSwolf: 0,

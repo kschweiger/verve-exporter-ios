@@ -3,6 +3,7 @@ import HealthKit
 @testable import VerveExporter
 import XCTest
 
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated export tests")
 extension ExportTests {
     func testPlainHealthKitStyleLocationsRetainAltitudeVariation() throws {
         let route = [275.0, 285.0].enumerated().map { index, altitude in

@@ -4,4 +4,4 @@ Reference docs collect domain and API notes for future agents. Keep them factual
 
 ## Current References
 
-- `healthkit.md`: HealthKit persisted-height limitations, offline EGM2008 conversion and validity checks, bounded browsing, synthetic tests, timezone semantics, fixed units, swimming derivations, and research backlog.
+- `healthkit.md`: HealthKit persisted-height limitations, offline EGM2008 conversion and validity checks, bounded browsing, synthetic tests and scoped fixture deprecation handling, timezone semantics, fixed units, swimming derivations, and research backlog.

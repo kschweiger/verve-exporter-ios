@@ -3,6 +3,7 @@ import HealthKit
 @testable import VerveExporter
 import XCTest
 
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated export tests")
 extension ExportTests {
     func testOnePositionRouteFailsEvenWithHeartRateSamples() throws {
         let route = [location(0, latitude: 48.1, longitude: 11.5)]

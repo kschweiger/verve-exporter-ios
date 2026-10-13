@@ -3,6 +3,8 @@ import HealthKit
 @testable import VerveExporter
 import XCTest
 
+/// In-memory fixtures require the legacy initializer; HKWorkoutBuilder saves to HealthKit.
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated diagnostic tests")
 final class SwimDiagnosticTests: XCTestCase {
     private let manager = HealthManager()
     private let start = Date(timeIntervalSince1970: 1_752_000_000)

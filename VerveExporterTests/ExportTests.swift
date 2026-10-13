@@ -3,6 +3,8 @@ import HealthKit
 @testable import VerveExporter
 import XCTest
 
+/// In-memory fixtures require the legacy initializer; HKWorkoutBuilder saves to HealthKit.
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated export tests")
 final class ExportTests: XCTestCase {
     static let manager = HealthManager()
     let start = Date(timeIntervalSince1970: 1_752_000_000)
@@ -200,12 +202,13 @@ final class ExportTests: XCTestCase {
                                                     swimmingLocationType: .openWater).subType, "Open Water")
         XCTAssertEqual(VerveActivityMapper.category(for: workout(type: .swimming, metadata: indoor),
                                                     swimmingLocationType: .unknown).subType, "Indoor")
-        let fallback = VerveActivityMapper.category(for: workout(type: .dance), swimmingLocationType: nil)
+        let fallback = VerveActivityMapper.category(for: workout(type: .cardioDance), swimmingLocationType: nil)
         XCTAssertEqual(fallback.type, "Other")
         XCTAssertEqual(fallback.subType, "Other")
     }
 }
 
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated export tests")
 extension ExportTests {
     func testOutOfOrderSwimmingEventsProduceSortedLapsMixedSetAndRestIntervals() throws {
         let firstLap = swimEvent(.lap, offset: 0, duration: 20, metadata: [
@@ -268,6 +271,7 @@ extension ExportTests {
     }
 }
 
+@available(iOS, deprecated: 17.0, message: "Uses unsaved HKWorkout fixtures for isolated export tests")
 extension ExportTests {
     func buildExport(
         for workout: HKWorkout,
