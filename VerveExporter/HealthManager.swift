@@ -16,11 +16,20 @@ struct GeoJSONExport {
 
 enum GeoJSONExportError: LocalizedError {
     case noSamples
+    case routeTooShort
+    case invalidElevation(pointIndex: Int)
+    case geoidModelUnavailable
 
     var errorDescription: String? {
         switch self {
         case .noSamples:
             return "This workout has no route or heart-rate samples to export."
+        case .routeTooShort:
+            return "This workout's route has fewer than two points and cannot be exported."
+        case .invalidElevation:
+            return "This workout's route has unavailable or invalid WGS 84 elevation and cannot be exported."
+        case .geoidModelUnavailable:
+            return "The route elevation model is unavailable or damaged, so this workout cannot be exported."
         }
     }
 }
@@ -93,7 +102,8 @@ class HealthManager {
         for workout: HKWorkout,
         locations: [CLLocation],
         heartRates: [HKQuantitySample],
-        fallbackTimeZone: TimeZone
+        fallbackTimeZone: TimeZone,
+        geoidUndulation: GeoidUndulationProvider? = nil
     ) throws -> GeoJSONExport {
         guard !locations.isEmpty || !heartRates.isEmpty else {
             throw GeoJSONExportError.noSamples
@@ -105,8 +115,10 @@ class HealthManager {
         isoFormatter.timeZone = exportTimeZone
         let swimmingMetadata = buildSwimmingMetadata(for: workout, isoFormatter: isoFormatter)
 
-        let exportFeature = WorkoutFeatureBuilder.build(
+        let elevations = try ellipsoidalElevations(for: locations, geoidUndulation: geoidUndulation)
+        let exportFeature = try WorkoutFeatureBuilder.build(
             locations: locations,
+            ellipsoidalElevations: elevations,
             heartRates: heartRates,
             isoFormatter: isoFormatter
         )

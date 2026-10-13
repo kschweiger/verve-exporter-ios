@@ -14,4 +14,4 @@ Keep `docs/DECISIONS.md` compact. Link to a design doc when a decision needs mor
 
 ## Current Design Docs
 
-- `2026-05-28-swim-metadata-verve-file-extension.md`: Source-neutral Verve file extension for swimming laps, sets, strokes, and SWOLF metadata.
+- `2026-05-28-swim-metadata-verve-file-extension.md`: Historical source-neutral swimming extension rationale, with current-contract link and corrected fractional timing.

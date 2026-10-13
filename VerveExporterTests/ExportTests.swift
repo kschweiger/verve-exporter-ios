@@ -4,8 +4,8 @@ import HealthKit
 import XCTest
 
 final class ExportTests: XCTestCase {
-    private static let manager = HealthManager()
-    private let start = Date(timeIntervalSince1970: 1_752_000_000)
+    static let manager = HealthManager()
+    let start = Date(timeIntervalSince1970: 1_752_000_000)
 
     func testRouteExportAlignsCoordinatesTimesAndNearbyHeartRates() throws {
         let workout = workout(type: .running)
@@ -18,7 +18,7 @@ final class ExportTests: XCTestCase {
         let properties = try XCTUnwrap(feature["properties"] as? [String: Any])
         let geometry = try XCTUnwrap(feature["geometry"] as? [String: Any])
         let coordinates = try XCTUnwrap(geometry["coordinates"] as? [[Double]])
-        XCTAssertEqual(coordinates, [[11.5, 48.1, 500], [11.6, 48.2, 500]])
+        XCTAssertEqual(coordinates, [[11.5, 48.1, 540], [11.6, 48.2, 540]])
         XCTAssertEqual((properties["coordTimes"] as? [String])?.count, 2)
         let exportedRates = try XCTUnwrap(properties["heartRates"] as? [Any])
         XCTAssertEqual(exportedRates.first as? Int, 140)
@@ -37,7 +37,7 @@ final class ExportTests: XCTestCase {
         XCTAssertEqual((feature["properties"] as? [String: Any])?["heartRates"] as? [Int], [101])
     }
 
-    func testEmptyWorkoutFailsInsteadOfWritingInvalidFeatureCollection() throws {
+    func testWorkoutWithoutSamplesReportsExporterCapabilityLimit() throws {
         XCTAssertThrowsError(try buildExport(for: workout(type: .yoga)))
     }
 
@@ -175,7 +175,7 @@ final class ExportTests: XCTestCase {
     func testRouteWithoutHeartRatesOmitsHeartRateStats() throws {
         let export = try buildExport(
             for: workout(type: .running),
-            locations: [location(0, latitude: 48.1, longitude: 11.5)]
+            locations: [location(0, latitude: 48.1, longitude: 11.5), location(60, latitude: 48.2, longitude: 11.6)]
         )
         let json = try jsonObject(export.data)
         let root = try XCTUnwrap(json["properties"] as? [String: Any])
@@ -269,27 +269,30 @@ extension ExportTests {
 }
 
 extension ExportTests {
-    private func buildExport(
+    func buildExport(
         for workout: HKWorkout,
         locations: [CLLocation] = [],
         heartRates: [HKQuantitySample] = [],
-        fallbackTimeZone: TimeZone? = nil
+        fallbackTimeZone: TimeZone? = nil,
+        geoidUndulation: GeoidUndulationProvider? = { _, _ in 40 }
     ) throws -> GeoJSONExport {
         let timeZone = try XCTUnwrap(fallbackTimeZone ?? TimeZone(secondsFromGMT: 0))
         return try Self.manager.buildGeoJSON(
             for: workout,
             locations: locations,
             heartRates: heartRates,
-            fallbackTimeZone: timeZone
+            fallbackTimeZone: timeZone,
+            geoidUndulation: geoidUndulation
         )
     }
 
-    private func workout(
+    func workout(
         type: HKWorkoutActivityType,
         start workoutStart: Date? = nil,
         duration: TimeInterval = 120,
         events: [HKWorkoutEvent]? = nil,
-        metadata: [String: Any]? = nil
+        metadata: [String: Any]? = nil,
+        energyKcal: Double? = nil
     ) -> HKWorkout {
         let workoutStart = workoutStart ?? start
         return HKWorkout(
@@ -297,23 +300,29 @@ extension ExportTests {
             start: workoutStart,
             end: workoutStart.addingTimeInterval(duration),
             workoutEvents: events,
-            totalEnergyBurned: nil,
+            totalEnergyBurned: energyKcal.map { HKQuantity(unit: .kilocalorie(), doubleValue: $0) },
             totalDistance: nil,
             metadata: metadata
         )
     }
 
-    private func location(_ offset: TimeInterval, latitude: Double, longitude: Double) -> CLLocation {
+    func location(
+        _ offset: TimeInterval,
+        latitude: Double,
+        longitude: Double,
+        altitude: Double = 500,
+        verticalAccuracy: Double = 5
+    ) -> CLLocation {
         CLLocation(
             coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
-            altitude: 500,
+            altitude: altitude,
             horizontalAccuracy: 5,
-            verticalAccuracy: 5,
+            verticalAccuracy: verticalAccuracy,
             timestamp: start.addingTimeInterval(offset)
         )
     }
 
-    private func swimEvent(
+    func swimEvent(
         _ type: HKWorkoutEventType,
         offset: TimeInterval,
         duration: TimeInterval,
@@ -326,7 +335,7 @@ extension ExportTests {
         )
     }
 
-    private func heartRate(
+    func heartRate(
         _ offset: TimeInterval,
         bpm: Double,
         start sampleStart: Date? = nil
@@ -344,7 +353,7 @@ extension ExportTests {
         )
     }
 
-    private func jsonObject(_ data: Data) throws -> [String: Any] {
+    func jsonObject(_ data: Data) throws -> [String: Any] {
         try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
 }

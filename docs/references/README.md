@@ -4,4 +4,4 @@ Reference docs collect domain and API notes for future agents. Keep them factual
 
 ## Current References
 
-- `healthkit.md`: HealthKit documentation links, bounded workout browsing queries, synthetic testing, recorded IANA timezone export and timestamp fallback, swimming data findings, and moving-duration research backlog.
+- `healthkit.md`: HealthKit persisted-height limitations, offline EGM2008 conversion and validity checks, bounded browsing, synthetic tests, timezone semantics, fixed units, swimming derivations, and research backlog.

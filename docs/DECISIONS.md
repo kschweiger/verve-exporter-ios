@@ -4,6 +4,34 @@ This is the compact decision log. Keep entries short. If a decision needs longer
 
 ## Entries
 
+### 2026-10-13: Convert persisted HealthKit sea-level heights with an offline geoid
+
+Decision: Use GeographicLib's immutable EGM2008 5-minute PGM grid (approximately 19 MB), bilinear interpolation, and `h = H + N(latitude, longitude)`. Validate its SHA-256 once through a lazy cached loader, require positive finite source accuracy and finite/valid inputs, and fail explicitly for damaged/missing data. Pass converted height arrays to the feature builder so they cannot be converted twice.
+
+Context: The user reported flattened elevations after the earlier change. HealthKit does not promise to store ellipsoidalAltitude; an ordinary CLLocation also returned zero for it despite valid sea-level height and positive accuracy. The earlier overridden test fixture hid this boundary. The user selected proper local conversion and the EGM2008 grid instead of changing the schema or rejecting all such routes.
+
+Consequences: No runtime network service or package dependency is needed; only native Foundation/CryptoKit are used. Apple documents EGM2008 in most cases, but rare alternate geoids and imported provenance still make this an explicitly documented estimate. Valid zero/negative derived heights remain valid. The 0.478 m interpolation error is relative to the model, not total source uncertainty. No-route heart-rate exports do not initialize the model. Resource provenance lives in `../VerveExporter/Resources/Geoid/README.md`.
+
+Implementation record: `exec-plans/completed/2026-10-13-healthkit-elevation-conversion.md`.
+
+### 2026-10-13: Align exporter output with unified Verve GeoJSON 1.0
+
+Decision at the initial release checkpoint: export route elevation directly from `CLLocation.ellipsoidalAltitude`, require at least two positions, and fail clearly for invalid inputs. The direct-property and nonnegative-accuracy choices are superseded by the offline conversion decision above. Specific alerts, kcal energy, explicit null geometry, sample alignment, and timezone semantics remain unchanged.
+
+Context: Sea-level altitude and one-position LineStrings do not satisfy the unified contract. Summary-only files are valid in the format, but this exporter still requires route or heart-rate samples. Statistics remain optional in the format even though this exporter supplies them.
+
+Consequences: A spatial workout with invalid elevation or only one point is rejected even if heart-rate samples are present. No points or elevation values are fabricated or silently substituted. Speed/cadence support remains separate work.
+
+### 2026-10-13: Derive swimming averages conservatively and retain source precision
+
+Decision: Derive set SWOLF averages from available included lap scores, omitting the average when no lap scores exist. Infer lap strokes only for standard length-based HealthKit SWOLF with known positive pool length and finite nonnegative integer-valued subtraction within 0.000001 numerical tolerance, checking Int representability. Preserve zero gaps, fractional distances, elapsed source-event durations, and meaningful reported zero values.
+
+Context: The user selected lap-derived averages; SDK wording does not guarantee that every segment score is an average. Rounding an unexplained fractional subtraction invents a stroke count. The old unchecked Int conversion also crashed for out-of-range synthetic inputs.
+
+Consequences: Missing lap scores are not zero. Complete derived sums require every component. Inclusive references are emitted only for contiguous selected lap indices; sets without usable ranges may still include their counts and other summaries. Equal-start events sort by end time and then original source position.
+
+Implementation record: `exec-plans/completed/2026-10-13-exporter-release-conformance.md`.
+
 ### 2026-09-29: Use the Verve palette in the activity browser
 
 Decision: Set the app accent color to Verve orange (`#F57A07`) for tinted controls and export icons. Use dark green (`#778332`) for workout activity icons, light green (`#EFF3DB`) for the activity screen background, white for workout rows, and brown (`#6D5239`) for section headings. Remove the large navigation title and present the activity browser in light appearance.

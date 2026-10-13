@@ -1,5 +1,9 @@
 # Swim Metadata Verve File Extension
 
+## Current contract
+
+The original design below is retained as rationale. The current normative contract and corrected complete examples are in `../product-specs/verve-swimming-metadata.md`. The 2026-10-13 exporter derives set average SWOLF from lap scores rather than unqualified segment scores.
+
 ## Status
 
 Proposed for the Verve file transfer contract. Backend implementation is intentionally out of scope for this repository session.
@@ -128,7 +132,7 @@ Example:
 {
   "index": 0,
   "startTime": "2026-05-27T14:58:06Z",
-  "endTime": "2026-05-27T14:59:01Z",
+  "endTime": "2026-05-27T14:59:00.34Z",
   "durationSeconds": 54.34,
   "distanceMeters": 50,
   "strokeStyle": "breaststroke",
@@ -196,7 +200,7 @@ The iOS exporter should map Apple HealthKit data into the source-neutral fields:
 - `HKWorkoutEventType.segment` -> `sets`
 - `HKMetadataKeySwimmingStrokeStyle` on lap events -> lap `strokeStyle`
 - `HKMetadataKeySWOLFScore` on lap events -> lap `swolf`
-- `HKMetadataKeySWOLFScore` on segment events -> set `averageSwolf`
+- Included lap SWOLF values -> derived set `averageSwolf`; the earlier segment-score mapping is superseded
 
 HealthKit swimming location type should affect Verve `activitySubType`, not swimming metadata `data`.
 

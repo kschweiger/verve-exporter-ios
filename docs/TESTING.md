@@ -60,6 +60,11 @@ Automated export coverage:
 - Synthetic swimming lap/set metadata, ordering, rest intervals, mixed styles, and incomplete inputs.
 - Swim diagnostic event grouping and metadata representation.
 - Indoor/outdoor activity mapping and workout time-zone selection with fallback, recorded IANA timezone encoding, and omission of missing or fixed-offset timezone metadata.
+- At least two spatial positions; ordinary HealthKit-style altitude-only CLLocation inputs converted by `h = H + N`; valid negative/zero derived heights; invalid/nonfinite altitude, accuracy, coordinates, or conversion values; route errors even with heart-rate samples; and no second conversion of verified heights.
+- Offline PGM parsing/interpolation, both poles and periodic longitude, exact binary-raster boundaries, twelve independent public NGA synthesis vectors, immutable bundled-grid checksum and actual app packaging, missing/corrupt model errors, and no geoid lookup for non-spatial exports.
+- Active energy remains numerically unchanged in kcal.
+- Fractional swimming distances/durations, internal pauses, zero subsequent gaps, meaningful zero scalars, unavailable-only metadata, detail arrays without counts, deterministic equal-start ordering, inclusive lap references, boundary-touching and noncontiguous overlap selections.
+- Conservative lap-derived set SWOLF averages, missing pool length, unexplained fractional inference, and out-of-range individual/set stroke-count arithmetic without crashing.
 
 `HKWorkout` rejects an invalid `HKMetadataKeyTimeZone` value at construction, so synthetic tests cover a missing time zone fallback. Invalid persisted metadata still uses the same fallback branch in the exporter.
 
@@ -83,6 +88,17 @@ the pre-commit `unsupported` environment. Run them directly with
 In a read-only agent sandbox, `make validate-lint` can fail before hooks run
 because `uvx` cannot access its cache. Re-run outside that sandbox when allowed.
 
+Pre-commit's `-a` option checks tracked files only. Until new Swift files are tracked, also check them explicitly:
+
+```bash
+swiftformat VerveExporter VerveExporterTests --lint --cache ignore
+swiftlint lint --quiet --strict VerveExporter VerveExporterTests
+```
+
+The iOS test target uses invented in-memory inputs and requires no HealthKit data. The hosted app can log missing-entitlement/authorization messages in signing-disabled simulator runs; those do not indicate test data was saved. Existing test-only deprecated HKWorkout construction is retained to avoid writing samples through HKWorkoutBuilder.
+
+GeoidGridTests additionally uses twelve public NGA-generated reference points, unrelated to personal workouts. Their expected EGM2008 heights come from independent harmonic synthesis, not the implementation under test; the comparison tolerance is 0.5 m, covering the selected grid's reported interpolation error. Provenance and checksums are in `../VerveExporter/Resources/Geoid/README.md`. General route tests inject known geoid corrections and construct ordinary CLLocation instances; the test that exercises production loading uses the actual app-bundled model. Do not reintroduce an overridden ellipsoidalAltitude fixture as evidence of HealthKit persistence.
+
 Build:
 
 ```bash
@@ -104,6 +120,8 @@ Manual real-device smoke test:
 4. Open the debug JSON preview for an outdoor workout with GPS and confirm `features[0].geometry.type == "LineString"`.
 5. Export/share the JSON and validate it against `docs/product-specs/verve-geojson-format.md`.
 6. Test an indoor/no-route workout and confirm the app either exports a no-geometry feature intentionally or reports a clear error.
+7. With safe synthetic inputs or an approved local workout, confirm one-point/invalid-elevation routes show the specific failure reason, dismiss the preparing sheet, and do not open the share sheet. Start another export to confirm previous error text is cleared.
+8. Re-export a locally approved outdoor workout and confirm elevation retains variation after geoid correction. Expect ellipsoidal heights to differ from the earlier sea-level export. Check the first cold export and offline operation on device; do not upload or commit the resulting personal file.
 
 Activity browser smoke check on a device with several workout types and months:
 

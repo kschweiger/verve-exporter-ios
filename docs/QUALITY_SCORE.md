@@ -10,12 +10,15 @@ Scores use this scale:
 | Area | Score | Evidence | Next action |
 | --- | ---: | --- | --- |
 | Architecture clarity | 2 | `ARCHITECTURE.md` maps the SwiftUI, HealthKit, and export-model boundaries. | Refine as code is split or tests are added. |
-| Tests and validation | 2 | Fourteen synthetic XCTest cases cover export and swim diagnostic behavior; app coverage rose from 40.31% to 55.35% on an iOS simulator. | Add an opt-in saved HealthKit integration check on a dedicated simulator. |
-| Documentation freshness | 2 | Harness docs, GeoJSON format docs, and HealthKit reference docs exist. | Update docs whenever Verve backend schema or HealthKit usage changes. |
+| Tests and validation | 2 | Fifty-seven XCTest cases passed on iOS 26.3, including ordinary-location altitude conversion, independent public geoid references, bundle/checksum validation, route/energy/swimming/timezone behavior, and overflow protection. Documentation, pre-commit, explicit all-source Swift lint, and generic iOS build checks passed. The earlier coverage measurement reached 55.35%; it was not remeasured for the elevation fix. | Add an opt-in saved HealthKit integration check on a dedicated simulator. |
+| Documentation freshness | 2 | Core/swimming docs now mirror the unified 1.0 specifications and distinguish format validity from exporter capabilities; HealthKit derivations and acceptance checks are documented. | Keep local contracts aligned with the unified format repository. |
 | Security and secrets handling | 2 | `docs/SECURITY.md` documents HealthKit privacy constraints and permits invented in-memory fixtures. | Keep future saved HealthKit integration fixtures on a dedicated simulator. |
 | Maintainability | 1 | Decision log and execution plan area exist. | Move export encoding and HealthKit mapping into testable units when changing behavior. |
 
 ## Gaps And Next Actions
+
+- The initial 2026-10-13 elevation tests overrode CLLocation.ellipsoidalAltitude and missed HealthKit's stored-field boundary; the correction replaces that fixture with ordinary locations and independently validated offline EGM2008 conversion.
+- Real-device authorization/route retrieval, native alert/share-sheet behavior, and first cold-export latency remain unverified. Automated tests use invented inputs and public geophysical vectors; a separate local aggregate-only check of the user-provided comparison file wrote no workout data and did not turn it into a fixture.
 
 - Extend export tests as new metrics and route shapes are supported.
 - Expand `docs/references/healthkit.md` when adding cadence, power, speed, elevation gain/loss, or workout-route edge cases.

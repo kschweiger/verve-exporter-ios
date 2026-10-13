@@ -176,6 +176,7 @@ struct WorkoutRow: View {
     @State private var exportSheetState: ExportSheetState?
     @State private var activeExportID: UUID?
     @State private var showError = false
+    @State private var exportErrorMessage: String?
 
     @State private var showDebug = false
 
@@ -220,6 +221,7 @@ struct WorkoutRow: View {
                             let exportID = UUID()
                             activeExportID = exportID
                             isExporting = true
+                            exportErrorMessage = nil
                             exportSheetState = .preparing(exportID)
 
                             #if DEBUG
@@ -246,6 +248,7 @@ struct WorkoutRow: View {
 
                                 if activeExportID == exportID {
                                     exportSheetState = nil
+                                    exportErrorMessage = error.localizedDescription
                                     showError = true
                                 }
                             }
@@ -289,7 +292,7 @@ struct WorkoutRow: View {
         .alert("Export Failed", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Could not find data for this workout.")
+            Text(exportErrorMessage ?? "Could not export this workout.")
         }
     }
 
@@ -370,7 +373,6 @@ extension HKWorkoutActivityType {
         case .hiking: return "Hike"
         case .cycling: return "Bike"
         case .swimming: return "Swim"
-        // The ones you were missing:
         case .elliptical: return "Elliptical" // Often used for Crosstrainer
         case .traditionalStrengthTraining: return "Strength Training"
         case .functionalStrengthTraining: return "Functional Strength"
@@ -386,9 +388,6 @@ extension HKWorkoutActivityType {
         case .climbing: return "Climbing"
         // Fallback for the other ~70 types
         default:
-            // This is a nifty trick: standardizes "HKWorkoutActivityTypeCaseName" -> "Case Name"
-            // Use debugDescription or manual mapping if you want perfection,
-            // but for a dev tool, specific cases + a generic string is best.
             return "Workout"
         }
     }

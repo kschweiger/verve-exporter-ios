@@ -25,6 +25,8 @@ Export unit tests may construct invented `HKWorkout`, `HKQuantitySample`, `HKWor
 
 ## Forbidden Handling Patterns
 
+The canonical GeographicLib `egm2008-5.pgm` global geoid grid is public NGA-derived geophysical data, unrelated to personal workouts. It may be tracked as an immutable application resource alongside its source URL, SHA-256, redistribution notice, and attribution. Public NGA-derived geoid reference vectors and invented miniature test grids are also safe fixtures. Download only public model data during development; the app must never upload route positions or query a geoid service at runtime.
+
 - Do not print secrets or tokens in logs.
 - Do not paste secrets, real routes, or full real workout JSON into docs, issues, merge requests, or agent responses.
 - Do not commit local datasets, generated artifacts, personal workouts, route exports, or credentials unless explicitly documented as safe.

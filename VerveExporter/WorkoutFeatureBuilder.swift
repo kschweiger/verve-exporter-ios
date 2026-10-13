@@ -5,12 +5,17 @@ import HealthKit
 enum WorkoutFeatureBuilder {
     static func build(
         locations: [CLLocation],
+        ellipsoidalElevations: [Double],
         heartRates: [HKQuantitySample],
         isoFormatter: ISO8601DateFormatter
-    ) -> (feature: LineFeature, heartRateValues: [Double]) {
+    ) throws -> (feature: LineFeature, heartRateValues: [Double]) {
+        guard ellipsoidalElevations.count == locations.count else {
+            throw GeoJSONExportError.invalidElevation(pointIndex: min(ellipsoidalElevations.count, locations.count))
+        }
         guard locations.isEmpty else {
-            return routeFeature(
+            return try routeFeature(
                 locations: locations,
+                ellipsoidalElevations: ellipsoidalElevations,
                 heartRates: heartRates,
                 isoFormatter: isoFormatter
             )
@@ -21,19 +26,29 @@ enum WorkoutFeatureBuilder {
 
     private static func routeFeature(
         locations: [CLLocation],
+        ellipsoidalElevations: [Double],
         heartRates: [HKQuantitySample],
         isoFormatter: ISO8601DateFormatter
-    ) -> (feature: LineFeature, heartRateValues: [Double]) {
+    ) throws -> (feature: LineFeature, heartRateValues: [Double]) {
+        guard locations.count >= 2 else {
+            throw GeoJSONExportError.routeTooShort
+        }
+        for (index, height) in ellipsoidalElevations.enumerated() {
+            guard height.isFinite else {
+                throw GeoJSONExportError.invalidElevation(pointIndex: index)
+            }
+        }
+
         var coordinates: [Coordinates] = []
         var coordinateTimes: [String] = []
         var heartRateValues: [Int?] = []
         var matchedHeartRateValues: [Double] = []
 
-        for location in locations {
+        for (index, location) in locations.enumerated() {
             coordinates.append([
                 location.coordinate.longitude,
                 location.coordinate.latitude,
-                location.altitude
+                ellipsoidalElevations[index]
             ])
             coordinateTimes.append(isoFormatter.string(from: location.timestamp))
 

@@ -100,7 +100,19 @@ let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: w
 
 ## Export Mapping Notes
 
-Verve expects coordinates as `[longitude, latitude, elevation]`. `CLLocationCoordinate2D` exposes latitude and longitude separately, so preserve the Verve order explicitly.
+Verve expects coordinates as `[longitude, latitude, elevation]`. Preserve that order explicitly. Elevation is WGS 84 ellipsoidal meters, allowing legitimate negative and zero values. Sea-level height is not interchangeable; unavailable or invalid data must fail clearly rather than fabricate coordinates.
+
+### Persisted route elevation: 2026-10-13 correction
+
+Apple's [reading route data](https://developer.apple.com/documentation/healthkit/reading-route-data) documentation lists `altitude`, coordinates, timestamps, and accuracy among the persisted CLLocation fields; it does not promise to persist `ellipsoidalAltitude`. A standard altitude-only CLLocation probe returned sea-level altitude 275 m, ellipsoidalAltitude 0 m, and verticalAccuracy 5 m. Real-device feedback exposed the same all-zero output. The earlier overridden test fixture did not establish HealthKit provenance.
+
+The exporter treats HealthKit locations as approximate mean-sea-level inputs and computes `h = H + N(latitude, longitude)` using the bundled GeographicLib EGM2008 5-minute grid. It never detects missing data by comparing a numerical height to zero and never reads ellipsoidalAltitude for HealthKit exports. The feature builder receives an aligned array of verified/converted heights and does not convert it again.
+
+Require finite source altitude, valid coordinates, finite nonnegative horizontal accuracy, positive finite vertical accuracy, and finite geoid/derived values. Apple's [horizontal accuracy documentation](https://developer.apple.com/documentation/corelocation/cllocation/horizontalaccuracy) marks negative accuracy as invalid coordinates. Its altitude/ellipsoidal-altitude documentation requires verticalAccuracy greater than zero; the initial nonnegative check was insufficient.
+
+Apple's current [altitude documentation](https://developer.apple.com/documentation/corelocation/cllocation/altitude) identifies EGM2008 for most measurements and DMA 10x10 rarely, typically differing by less than 5 m. A saved or imported workout does not identify which original model was used. This is an EGM2008-based estimate, not reconstruction of original GNSS ellipsoidal data. The grid's maximum bilinear interpolation error is 0.478 m relative to EGM2008, not total sensor/conversion uncertainty. Model bytes are checksum-validated and cached lazily; no route coordinates leave the device. See `../../VerveExporter/Resources/Geoid/README.md` for source, checksum, and public reference vectors.
+
+Energy remains `workout.statistics(for: activeEnergyBurned)?.sumQuantity()?.doubleValue(for: .kilocalorie())` under `totalEnergyKcal`. The exporter does not currently supply speed or cadence. Future speed values must normalize to m/s; running cadence must establish steps versus two-step strides before normalization to total steps/minute. Cycling cadence counts crank revolutions/minute; other sports must document the counted motion.
 
 Heart rate values are exported in beats per minute:
 
@@ -179,10 +191,14 @@ Implemented export mapping:
 - `HKWorkoutEventType.segment` -> `metadata.data.sets`
 - `HKMetadataKeySwimmingStrokeStyle` on lap events -> lap `strokeStyle`
 - `HKMetadataKeySWOLFScore` on lap events -> lap `swolf`
-- `HKMetadataKeySWOLFScore` on segment events -> set `averageSwolf`
-- Lap `strokeCount` -> inferred from `swolf - durationSeconds` when non-negative
+- Available included lap SWOLF values -> arithmetic mean for set `averageSwolf`; unqualified segment SWOLF is not used as a guaranteed average
+- Lap `strokeCount` -> inferred from standard length-based `swolf - durationSeconds` only with known positive pool length and a finite nonnegative integer result within 0.000001 numerical tolerance; unexplained fractional results are omitted
 - Set `strokeStyle`, `strokeCount`, and `distanceMeters` -> inferred from overlapping laps
 - `HKWorkoutActivity.workoutConfiguration.swimmingLocationType` or `HKMetadataKeySwimmingLocationType` -> Verve `activitySubType`, not swim metadata `data`
+
+The installed `HKMetadata.h` SDK header defines SWOLF as strokes per length plus time for that length. That definition supports lap inference when the pool length is known; it does not guarantee that every segment score is an average. Historical device observations of matching segment averages do not establish that guarantee for imported workouts.
+
+Synthetic HealthKit validation rejects a pool workout without a valid pool length. Tests for missing lap-length metadata must leave swimming location unspecified instead of declaring a pool swim.
 
 Real-device questions to continue testing:
 

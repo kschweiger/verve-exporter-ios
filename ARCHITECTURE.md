@@ -19,9 +19,12 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 - `VerveExporter/HealthManager+Swimming.swift`: Swimming lap, set, and workout metadata construction.
 - `VerveExporter/HealthManager+SwimDiagnostics.swift`: Diagnostic JSON for swimming workouts and HealthKit metadata.
 - `VerveExporter/WorkoutFeatureBuilder.swift`: Route and heart-rate feature construction for GeoJSON.
+- `VerveExporter/HealthManager+Elevation.swift`: Validates HealthKit sea-level source heights and converts them to explicit ellipsoidal height arrays.
+- `VerveExporter/GeoidGrid.swift` and `BundledGeoidGrid.swift`: Foundation-only global PGM interpolation plus lazy, checksum-validated loading of the public EGM2008 resource.
+- `VerveExporter/Resources/Geoid/`: Immutable EGM2008 grid and its source/checksum/redistribution notes.
 - `VerveExporter/ActivityMapping.swift`: Verve activity categories and workout row icon mappings.
 - `VerveExporter/GeoJSON.swift`: Encodable Swift models for the Verve GeoJSON export structure.
-- `VerveExporterTests/`: In-memory synthetic workout tests for the export builder.
+- `VerveExporterTests/`: In-memory synthetic export, route/swimming conformance, and diagnostic tests; focused test extensions reuse invented fixture helpers.
 - `VerveExporter/VerveExporter.entitlements`: HealthKit entitlement.
 - `docs/`: Harness, product, testing, security, and reference docs for future agents.
 
@@ -29,13 +32,13 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 
 - UI layer: SwiftUI views in `ContentView.swift` and `DebugView.swift`, with browsing state in `WorkoutBrowserModel.swift`.
 - HealthKit access layer: `HealthManager`, `HKHealthStore`, workout queries, route queries, and heart-rate sample queries.
-- Export construction layer: `WorkoutFeatureBuilder`, swimming metadata construction, and activity mappings feed the `GeoJSON.swift` models.
-- Export model layer: `GeoJSON.swift` structures, aligned with the Verve backend Pydantic schema in `/Users/korbinian/Code/verve/backend/verve_backend/schema/verve_file.py`.
+- Export construction layer: HealthKit elevation conversion, `WorkoutFeatureBuilder`, swimming metadata construction, and activity mappings feed the `GeoJSON.swift` models. The feature builder consumes already converted height arrays and applies no datum conversion.
+- Export model layer: `GeoJSON.swift` structures, aligned with the unified core/swimming 1.0 contracts documented in `docs/product-specs/`. The backend Pydantic consumer is in `/Users/korbinian/Code/verve/backend/verve_backend/schema/verve_file.py`.
 - File output layer: temporary JSON files generated for ShareLink export.
 
 ## Dependency Direction
 
-SwiftUI views depend on `WorkoutBrowserModel`, `HealthManager`, and the workout icon mapping. The browser model uses bounded HealthKit workout queries and the shared Verve activity mapper. `HealthManager` and its same-type extensions depend on HealthKit/CoreLocation, activity mappings, feature construction, and the export model structs. `GeoJSON.swift` should stay independent of HealthKit so encoding can be tested without HealthKit data.
+SwiftUI views depend on `WorkoutBrowserModel`, `HealthManager`, and the workout icon mapping. The browser model uses bounded HealthKit workout queries and the shared Verve activity mapper. `HealthManager` and its same-type extensions depend on HealthKit/CoreLocation, activity mappings, feature construction, and the export model structs. `GeoidGrid` depends only on Foundation; its bundle loader additionally uses the native CryptoKit framework for SHA-256. The immutable grid is cached lazily for spatial exports, with no geoid loading for heart-rate-only exports. `GeoJSON.swift` stays independent of HealthKit.
 
 ## Boundaries Agents Must Respect
 
@@ -50,10 +53,10 @@ SwiftUI views depend on `WorkoutBrowserModel`, `HealthManager`, and the workout 
 Document where external input is validated before it enters core logic.
 
 - Configuration: Xcode build settings define bundle id, HealthKit entitlement, generated Info.plist, and `NSHealthShareUsageDescription`.
-- Files and paths: export files are written to `FileManager.default.temporaryDirectory`; no imported file parsing exists in the app today.
+- Files and paths: export files are written to `FileManager.default.temporaryDirectory`; no imported workout-file parsing exists. The bundled public geoid file is checked against a pinned byte count and SHA-256 before parsing its dimensions, metadata, and raster boundaries. Missing/damaged data fails export explicitly.
 - Command output: build and inspection commands are documented in `docs/TESTING.md`; simulator errors may be environmental.
 - API or service input: HealthKit access is mediated by `HKHealthStore.requestAuthorization`, sample predicates, and route queries.
-- Dataframes, datasets, or model inputs: not applicable.
+- Model inputs: the bundled global EGM2008 geoid supports an approximate mean-sea-level to WGS 84 ellipsoidal-height conversion. Its source and uncertainty limits are documented with the resource. Invalid coordinates/horizontal accuracy, nonfinite altitude, nonpositive/nonfinite vertical accuracy, or nonfinite derived heights are rejected before file writing.
 
 ## Current Unknowns
 

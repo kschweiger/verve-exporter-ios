@@ -58,11 +58,12 @@ extension HealthManager {
             let swolf = swolfScore(from: event.metadata)
             let strokeCount = inferredStrokeCount(
                 swolf: swolf,
-                durationSeconds: event.dateInterval.duration
+                durationSeconds: event.dateInterval.duration,
+                poolLengthMeters: poolLengthMeters
             )
             let nextEvent = events.indices.contains(offset + 1) ? events[offset + 1] : nil
             let restAfterSeconds = nextEvent.flatMap {
-                positiveDuration(from: event.dateInterval.end, to: $0.dateInterval.start)
+                nonnegativeDuration(from: event.dateInterval.end, to: $0.dateInterval.start)
             }
 
             let metadata = SwimLapMetadata(
@@ -90,9 +91,10 @@ extension HealthManager {
                 intervalsOverlap($0.event.dateInterval, event.dateInterval)
             }
             let lapMetadata = overlappingLaps.map(\.metadata)
+            let lapRange = contiguousLapRange(from: lapMetadata)
             let nextEvent = events.indices.contains(offset + 1) ? events[offset + 1] : nil
             let restAfterSeconds = nextEvent.flatMap {
-                positiveDuration(from: event.dateInterval.end, to: $0.dateInterval.start)
+                nonnegativeDuration(from: event.dateInterval.end, to: $0.dateInterval.start)
             }
 
             return SwimSetMetadata(
@@ -100,13 +102,13 @@ extension HealthManager {
                 startTime: isoFormatter.string(from: event.dateInterval.start),
                 endTime: isoFormatter.string(from: event.dateInterval.end),
                 durationSeconds: event.dateInterval.duration,
-                lapStartIndex: lapMetadata.first?.index,
-                lapEndIndex: lapMetadata.last?.index,
+                lapStartIndex: lapRange?.start,
+                lapEndIndex: lapRange?.end,
                 lapCount: lapMetadata.isEmpty ? nil : lapMetadata.count,
                 distanceMeters: sumIfComplete(lapMetadata.map(\.distanceMeters)),
                 strokeStyle: setStrokeStyle(from: lapMetadata),
                 strokeCount: sumIfComplete(lapMetadata.map(\.strokeCount)),
-                averageSwolf: swolfScore(from: event.metadata) ?? average(lapMetadata.compactMap(\.swolf)),
+                averageSwolf: average(lapMetadata.compactMap(\.swolf)),
                 restAfterSeconds: restAfterSeconds
             )
         }
@@ -141,24 +143,55 @@ extension HealthManager {
 
     private func sortedEvents(_ events: [HKWorkoutEvent], ofType type: HKWorkoutEventType) -> [HKWorkoutEvent] {
         events
-            .filter { $0.type == type }
-            .sorted { $0.dateInterval.start < $1.dateInterval.start }
+            .enumerated()
+            .filter { $0.element.type == type }
+            .sorted { first, second in
+                let firstInterval = first.element.dateInterval
+                let secondInterval = second.element.dateInterval
+                if firstInterval.start != secondInterval.start {
+                    return firstInterval.start < secondInterval.start
+                }
+                if firstInterval.end != secondInterval.end {
+                    return firstInterval.end < secondInterval.end
+                }
+                return first.offset < second.offset
+            }
+            .map(\.element)
     }
 
-    private func inferredStrokeCount(swolf: Double?, durationSeconds: Double?) -> Int? {
-        guard let swolf, let durationSeconds else {
+    private func inferredStrokeCount(
+        swolf: Double?,
+        durationSeconds: Double,
+        poolLengthMeters: Double?
+    ) -> Int? {
+        guard let swolf, swolf.isFinite,
+              durationSeconds.isFinite, durationSeconds >= 0,
+              let poolLengthMeters, poolLengthMeters.isFinite, poolLengthMeters > 0
+        else {
             return nil
         }
         let strokeCount = swolf - durationSeconds
-        guard strokeCount >= 0 else {
+        let nearestInteger = strokeCount.rounded()
+        guard strokeCount.isFinite, strokeCount >= 0,
+              abs(strokeCount - nearestInteger) <= 0.000001
+        else {
             return nil
         }
-        return Int(round(strokeCount))
+        return Int(exactly: nearestInteger)
     }
 
-    private func positiveDuration(from start: Date, to end: Date) -> Double? {
+    private func nonnegativeDuration(from start: Date, to end: Date) -> Double? {
         let duration = end.timeIntervalSince(start)
-        return duration > 0 ? duration : nil
+        return duration >= 0 ? duration : nil
+    }
+
+    private func contiguousLapRange(from laps: [SwimLapMetadata]) -> (start: Int, end: Int)? {
+        guard let first = laps.first, let last = laps.last,
+              last.index - first.index + 1 == laps.count
+        else {
+            return nil
+        }
+        return (first.index, last.index)
     }
 
     private func intervalsOverlap(_ first: DateInterval, _ second: DateInterval) -> Bool {
@@ -176,7 +209,15 @@ extension HealthManager {
         guard !values.isEmpty, values.allSatisfy({ $0 != nil }) else {
             return nil
         }
-        return values.compactMap { $0 }.reduce(0, +)
+        var total = 0
+        for value in values.compactMap({ $0 }) {
+            let (sum, overflow) = total.addingReportingOverflow(value)
+            guard !overflow else {
+                return nil
+            }
+            total = sum
+        }
+        return total
     }
 
     private func average(_ values: [Double]) -> Double? {

@@ -16,5 +16,5 @@ Create a product spec before implementing new user-visible behavior when require
 ## Current Specs
 
 - `activity-browser.md`: Recent workout browsing, Verve type filtering, month grouping, incremental reveal, and distinct palette colors for activity and export icons.
-- `verve-geojson-format.md`: Current Verve GeoJSON export contract, including omitted moving duration, recorded IANA timezone, timestamp time zone, and empty-workout rules.
-- `verve-swimming-metadata.md`: Shareable Verve swimming metadata contract for exporters, importers, and backend services.
+- `verve-geojson-format.md`: Unified core 1.0 contract and iOS offline EGM2008 elevation estimates, geometry/sample requirements, optional statistics, fixed units, and capability limits.
+- `verve-swimming-metadata.md`: Unified swimming 1.0 contract: counts, indices, elapsed timing, precision-aware SWOLF derivation, overflow-safe stroke totals, and complete synthetic examples.

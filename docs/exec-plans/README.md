@@ -26,6 +26,10 @@ Completion criteria
 
 ## Completed Plans
 
+- `completed/2026-10-13-healthkit-elevation-conversion.md`: Corrected persisted HealthKit height provenance with offline EGM2008 conversion, checksum-pinned public data, ordinary-location regressions, and 57 passing tests.
+
+- `completed/2026-10-13-exporter-release-conformance.md`: Aligned routes, swimming derivations, specific export errors, fixtures, and docs with Verve GeoJSON 1.0; 37 synthetic tests and docs/lint/build checks passed.
+
 - `completed/2026-10-11-recorded-timezone.md`: Exported recorded IANA workout timezone; documented synthetic tests and the existing formatting gap.
 
 - `completed/2026-09-28-activity-browser.md`: Added recent workout browsing, Verve type filtering, month grouping, and incremental reveal.
@@ -42,4 +46,4 @@ Completion criteria
 
 - `active/`: Plans currently being executed.
 - `completed/`: Finished plans retained for future agents.
-- `tech-debt-tracker.md`: Known debt, quality gaps, follow-up work, and the existing browser property formatting failure (TD-006).
+- `tech-debt-tracker.md`: Known debt and quality gaps; TD-006 browser property formatting is now resolved.

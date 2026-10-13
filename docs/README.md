@@ -5,12 +5,13 @@ Repository-local documentation is the system of record for future agents. If dur
 ## Core Documents
 
 - `../AGENTS.md`: Short agent entry point and table of contents.
-- `../ARCHITECTURE.md`: Repository layout, including the activity browser model and focused HealthKit/export helper files, stack, boundaries, dependency direction, and validation boundaries.
+- `../ARCHITECTURE.md`: Repository layout, offline geoid interpolation/loading and HealthKit conversion, focused conformance tests, unified contract boundary, and dependency direction.
 - `PRINCIPLES.md`: Harness operating principles.
-- `TESTING.md`: Safe validation commands, pre-commit lint/format checks and sandbox limits, synthetic export and swim diagnostic XCTest coverage, and real-device browser/export smoke checks.
-- `SECURITY.md`: Secrets, HealthKit data, synthetic fixture rules, and forbidden handling patterns.
-- `QUALITY_SCORE.md`: Lightweight quality score, measured app coverage, gaps, and next actions.
-- `DECISIONS.md`: Compact decision log, including distinct activity and export colors, recorded IANA export timezone and timestamp fallback, moving-duration omission, and synthetic test choices.
+- `TESTING.md`: Safe validation commands, all-source lint for untracked Swift files, plain-location elevation regressions, public geoid vectors, route/swimming diagnostics, and device/offline smoke checks.
+- `SECURITY.md`: Secrets, HealthKit data, synthetic fixture rules, the public EGM2008 resource exception, and forbidden handling patterns.
+- `QUALITY_SCORE.md`: Fifty-seven passing tests, the corrected elevation-validation gap, historical coverage, and remaining device/latency checks.
+- `../.gitattributes`: Preserves the immutable geoid resource as binary bytes without text conversions.
+- `DECISIONS.md`: Compact decision log, including corrected offline EGM2008 height provenance, conservative swimming derivations, palette choices, timezone, and synthetic tests.
 
 ## Work Areas
 
@@ -21,7 +22,11 @@ Repository-local documentation is the system of record for future agents. If dur
 
 ## Key Project References
 
+- `exporter-release-changes.md`: Verve GeoJSON 1.0 handoff, acceptance requirements, and completed implementation/validation record.
+- `QUALITY_SCORE.md`: Current synthetic test evidence and historical coverage measurement, with remaining device/UI integration gaps.
+
 - `product-specs/activity-browser.md`: Recent workout browsing, Verve type filtering, month grouping, and incremental reveal.
 - `product-specs/verve-geojson-format.md`: Verve GeoJSON export contract, omitted moving duration, recorded IANA timezone, timestamp rules, and empty-workout behavior.
 - `product-specs/verve-swimming-metadata.md`: Shareable Verve swimming metadata contract.
 - `references/healthkit.md`: HealthKit documentation links, bounded workout queries, synthetic test guidance, recorded timezone metadata semantics, and moving-duration research backlog.
+- `../VerveExporter/Resources/Geoid/README.md`: Public EGM2008 resource source, checksum, redistribution notes, conversion limits, and independent reference-vector provenance.

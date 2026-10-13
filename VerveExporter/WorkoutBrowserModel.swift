@@ -13,7 +13,9 @@ enum ActivityFilter: String, CaseIterable, Identifiable {
     case climbing = "Climbing"
     case other = "Other"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     func includes(_ workout: HKWorkout) -> Bool {
         self == .all || VerveActivityMapper.category(for: workout, swimmingLocationType: nil).type == rawValue
