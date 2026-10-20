@@ -12,7 +12,10 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 
 - `VerveExporter.xcodeproj/`: Xcode project and scheme metadata.
 - `VerveExporter/VerveExporterApp.swift`: SwiftUI app entry point.
-- `VerveExporter/ContentView.swift`: Activity browser UI, filter control, month sections, export button, share sheet, and workout display helpers.
+- `VerveExporter/ContentView.swift`: Activity browser, filtering, month sections, and bulk selection controls.
+- `VerveExporter/WorkoutRow.swift`: Workout display, individual export preparation, and the shared native share controller wrapper.
+- `VerveExporter/BulkExportModel.swift` and `BulkExportSheet.swift`: Sequential batch preparation, selection, partial failures, cancellation, and share presentation.
+- `VerveExporter/ExportFileWriter.swift`: Collision-safe atomic JSON writing into an attempt-owned directory.
 - `VerveExporter/WorkoutBrowserModel.swift`: Bounded workout loading, Verve type filtering, incremental reveal, and browser loading state.
 - `VerveExporter/DebugView.swift`: JSON preview sheet that reuses the export path and shows generated output for inspection.
 - `VerveExporter/HealthManager.swift`: HealthKit authorization, workout queries, route and heart-rate queries, GeoJSON assembly, and export file generation.
@@ -34,7 +37,7 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 - HealthKit access layer: `HealthManager`, `HKHealthStore`, workout queries, route queries, and heart-rate sample queries.
 - Export construction layer: HealthKit elevation conversion, `WorkoutFeatureBuilder`, swimming metadata construction, and activity mappings feed the `GeoJSON.swift` models. The feature builder consumes already converted height arrays and applies no datum conversion.
 - Export model layer: `GeoJSON.swift` structures, aligned with the unified core/swimming 1.0 contracts documented in `docs/product-specs/`. The backend Pydantic consumer is in `/Users/korbinian/Code/verve/backend/verve_backend/schema/verve_file.py`.
-- File output layer: temporary JSON files generated for ShareLink export.
+- File output layer: temporary JSON files shared with UIActivityViewController. Bulk attempts own isolated directories, retain URLs through sharing, and remove their directories after dismissal or after cancelled in-flight work finishes.
 
 ## Dependency Direction
 

@@ -4,6 +4,15 @@ This is the compact decision log. Keep entries short. If a decision needs longer
 
 ## Entries
 
+### 2026-10-20: Share selected workouts as separate JSON files
+
+Decision: Use selection within the current filter, sequential export preparation, and one native share sheet containing individual JSON files. Keep successful files after individual failures and require an explicit share action after a failure summary. Each attempt owns its temporary directory, with collision suffixes and cleanup after sharing or cancelled work finishes.
+
+Context: The user chose manual selection, separate JSON files, partial success, and a fixed filter. Existing GeoJSON remains the shared contract.
+
+Consequences: No archive format, backend integration, new dependencies or HealthKit permissions. Cancellation suppresses late presentation and stops before the next workout; current reads may finish. See [bulk export](product-specs/bulk-export.md).
+
+
 ### 2026-10-13: Convert persisted HealthKit sea-level heights with an offline geoid
 
 Decision: Use GeographicLib's immutable EGM2008 5-minute PGM grid (approximately 19 MB), bilinear interpolation, and `h = H + N(latitude, longitude)`. Validate its SHA-256 once through a lazy cached loader, require positive finite source accuracy and finite/valid inputs, and fail explicitly for damaged/missing data. Pass converted height arrays to the feature builder so they cannot be converted twice.

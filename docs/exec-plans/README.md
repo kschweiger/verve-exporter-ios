@@ -26,6 +26,8 @@ Completion criteria
 
 ## Completed Plans
 
+- `completed/2026-10-20-bulk-export.md`: Added selection, sequential preparation, partial failures, multi-file sharing and attempt-scoped cleanup. All 64 synthetic tests and docs/lint/build validation passed; device sharing/accessibility checks remain manual.
+
 - `completed/2026-10-13-healthkit-elevation-conversion.md`: Corrected persisted HealthKit height provenance with offline EGM2008 conversion, checksum-pinned public data, ordinary-location regressions, and 57 passing tests.
 
 - `completed/2026-10-13-exporter-release-conformance.md`: Aligned routes, swimming derivations, specific export errors, fixtures, and docs with Verve GeoJSON 1.0; 37 synthetic tests and docs/lint/build checks passed.

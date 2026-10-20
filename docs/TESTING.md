@@ -52,6 +52,8 @@ The app target percentage measures app code; the test target percentage measures
 the test code itself. Set `COVERAGE_RESULT_BUNDLE=/path/to/result.xcresult` to
 choose a specific output path; that path must not already exist.
 
+Bulk export tests use invented in-memory workouts, injected asynchronous export operations, and temporary files containing invented JSON. They cover UUID selection, ordered sequential outcomes, duplicate filenames, partial/all failures, cancellation, late completion during retry, write failure, and cleanup. Main-actor model tests use async XCTest methods with an actual suspension (SwiftFormat removes unused async declarations): the iOS 26.3 runtime crashed in `swift_task_deinitOnExecutorImpl` when the same selection test was invoked synchronously by XCTest.
+
 Automated export coverage:
 
 - Route coordinates, timestamp and heart-rate alignment, and required duration.
@@ -131,6 +133,14 @@ Activity browser smoke check on a device with several workout types and months:
 4. Clear the active filter with the one-tap clear button. Confirm `All activities` and the newest ten workouts return.
 5. Select a type with no workouts, if available, and confirm the empty state offers `Clear filter`.
 6. Pull to refresh and confirm the current filter remains selected and the list resets to ten workouts.
+
+## Bulk export smoke check
+
+1. Tap Select, toggle Latest activity and history rows, and verify Export (N), Select loaded and Deselect all. Check VoiceOver selection values and larger text.
+2. Confirm filters and refresh are unavailable. Show more must preserve selections and leave new rows unselected. Cancel selection, then confirm normal filtering and individual export work.
+3. With invented fixtures or explicitly approved local workouts, export several selections. Confirm immediate progress and a single share sheet with one JSON per success; Save to Files must retain every file even for duplicate proposed names.
+4. Mix exportable and unsupported workouts. Confirm the summary names each failure and its reason, then Share N files includes only successes. All-failure results offer Done without a share action.
+5. Cancel preparation and immediately retry. The cancelled attempt must not reopen a sheet or remove the new batch's files. Dismissing sharing must retain selection for adjustment/retry.
 
 ## Expensive Or Unsafe Checks
 

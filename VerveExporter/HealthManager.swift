@@ -82,7 +82,7 @@ class HealthManager {
         return String(data: data, encoding: .utf8) ?? "Encoding Error"
     }
 
-    func generateGeoJSON(for workout: HKWorkout) async throws -> URL {
+    func generateGeoJSON(for workout: HKWorkout, destinationDirectory: URL? = nil) async throws -> URL {
         async let locationsTask = try? fetchRouteLocations(for: workout)
         async let heartRatesTask = try? fetchHeartRates(for: workout)
         let (gpsDataOrNil, hrDataOrNil) = await(locationsTask, heartRatesTask)
@@ -93,8 +93,11 @@ class HealthManager {
             heartRates: hrDataOrNil ?? [],
             fallbackTimeZone: .current
         )
+        if let destinationDirectory {
+            return try ExportFileWriter.write(export, to: destinationDirectory)
+        }
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(export.fileName)
-        try export.data.write(to: tempURL)
+        try export.data.write(to: tempURL, options: .atomic)
         return tempURL
     }
 
@@ -197,8 +200,8 @@ class HealthManager {
         ]
         var totalDistance: Double?
         for identifier in distanceTypes {
-            guard let type = HKQuantityType.quantityType(forIdentifier: identifier) else { continue }
-            guard let quantity = workout.statistics(for: type)?.sumQuantity() else { continue }
+            guard let type = HKQuantityType.quantityType(forIdentifier: identifier),
+                  let quantity = workout.statistics(for: type)?.sumQuantity() else { continue }
             totalDistance = quantity.doubleValue(for: .meter())
             break
         }

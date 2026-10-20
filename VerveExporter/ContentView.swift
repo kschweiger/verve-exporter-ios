@@ -7,10 +7,14 @@
 
 import HealthKit
 import SwiftUI
-import UIKit
 
 struct ContentView: View {
     @State private var browser = WorkoutBrowserModel()
+    @State private var bulk = BulkExportModel()
+    @State private var isSelecting = false
+    @State private var isBulkSheetPresented = false
+    @State private var bulkPresentationActive = false
+    @State private var activeIndividualExports: Set<UUID> = []
 
     var body: some View {
         NavigationStack {
@@ -20,10 +24,7 @@ struct ContentView: View {
                 List {
                     if let latest = browser.workouts.first {
                         Section {
-                            WorkoutRow(
-                                workout: latest,
-                                healthManager: browser.healthManager
-                            )
+                            workoutRow(latest)
                         } header: {
                             Text("Latest activity")
                                 .foregroundStyle(Color("VerveBrown"))
@@ -32,7 +33,7 @@ struct ContentView: View {
                         ForEach(monthSections) { month in
                             Section {
                                 ForEach(month.workouts, id: \.uuid) { workout in
-                                    WorkoutRow(workout: workout, healthManager: browser.healthManager)
+                                    workoutRow(workout)
                                 }
                             } header: {
                                 Text(month.date.formatted(.dateTime.month(.wide).year()))
@@ -84,10 +85,13 @@ struct ContentView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color("VerveLight"))
-                .refreshable {
-                    await browser.reload()
+                .modifier(BrowserRefreshModifier(isEnabled: !isSelecting, browser: browser))
+
+                if isSelecting {
+                    selectionBar
                 }
             }
+            .disabled(bulkPresentationActive)
             .background(Color("VerveLight"))
             .toolbar(.hidden, for: .navigationBar)
             .task {
@@ -102,6 +106,12 @@ struct ContentView: View {
                 Text(browser.errorMessage ?? "Unknown error")
             }
         }
+        .sheet(isPresented: $isBulkSheetPresented, onDismiss: {
+            bulk.dismiss()
+            bulkPresentationActive = false
+        }, content: {
+            BulkExportSheet(model: bulk) { isBulkSheetPresented = false }
+        })
         .preferredColorScheme(.light)
     }
 
@@ -117,9 +127,11 @@ struct ContentView: View {
                 Label(browser.selectedFilter.rawValue, systemImage: "line.3.horizontal.decrease")
             }
 
+            .disabled(isSelecting)
+
             Spacer()
 
-            if browser.selectedFilter != .all {
+            if !isSelecting, browser.selectedFilter != .all {
                 Button {
                     browser.selectFilter(.all)
                 } label: {
@@ -128,9 +140,65 @@ struct ContentView: View {
                 }
                 .accessibilityLabel("Clear activity filter")
             }
+
+            Button(isSelecting ? "Cancel" : "Select") {
+                isSelecting.toggle()
+                bulk.clearSelection()
+            }
+            .disabled(browser.isLoading || browser.isLoadingMore || !activeIndividualExports.isEmpty
+                || (!isSelecting && browser.workouts.isEmpty))
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private func workoutRow(_ workout: HKWorkout) -> some View {
+        if isSelecting {
+            Button {
+                bulk.toggle(workout)
+            } label: {
+                HStack {
+                    Image(systemName: bulk.selectedIDs.contains(workout.uuid)
+                        ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(.tint)
+                    WorkoutRow(workout: workout, healthManager: browser.healthManager, showsExportActions: false)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(Color.white)
+            .accessibilityValue(bulk.selectedIDs.contains(workout.uuid) ? "Selected" : "Not selected")
+            .accessibilityAddTraits(bulk.selectedIDs.contains(workout.uuid) ? .isSelected : [])
+        } else {
+            WorkoutRow(workout: workout, healthManager: browser.healthManager) { active in
+                if active {
+                    activeIndividualExports.insert(workout.uuid)
+                } else {
+                    activeIndividualExports.remove(workout.uuid)
+                }
+            }
+        }
+    }
+
+    private var selectionBar: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Button("Select loaded") { bulk.selectLoaded(browser.workouts) }
+                Spacer()
+                Button("Deselect all") { bulk.clearSelection() }
+                    .disabled(bulk.selectedIDs.isEmpty)
+            }
+            Button("Export (\(bulk.selectedIDs.count))") {
+                let snapshot = bulk.selectedWorkouts(in: browser.workouts)
+                bulkPresentationActive = true
+                isBulkSheetPresented = true
+                Task { await bulk.prepare(snapshot) }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(bulk.selectedIDs.isEmpty || browser.isLoadingMore)
+        }
+        .padding()
     }
 
     private func filterMenuItem(_ filter: ActivityFilter) -> some View {
@@ -163,233 +231,6 @@ private struct WorkoutMonthSection: Identifiable {
 
     var id: Date {
         date
-    }
-}
-
-struct WorkoutRow: View {
-    private let isDebugPreviewEnabled = false
-
-    let workout: HKWorkout
-    var healthManager: HealthManager
-
-    @State private var isExporting = false
-    @State private var exportSheetState: ExportSheetState?
-    @State private var activeExportID: UUID?
-    @State private var showError = false
-    @State private var exportErrorMessage: String?
-
-    @State private var showDebug = false
-
-    var body: some View {
-        HStack {
-            Image(systemName: WorkoutActivityIconMapper.systemName(for: workout.workoutActivityType))
-                .font(.title2)
-                .foregroundStyle(Color("VerveDark"))
-                .frame(width: 40)
-
-            VStack(alignment: .leading) {
-                Text(workout.workoutActivityType.name)
-                    .font(.headline)
-
-                Text(workout.startDate.formatted(date: .abbreviated, time: .shortened))
-                    .font(.caption)
-                    .foregroundStyle(Color("VerveBrown").opacity(0.8))
-            }
-
-            Spacer()
-
-            Text(formatDuration(workout.duration))
-                .font(.subheadline)
-                .monospacedDigit()
-
-            HStack(spacing: 15) {
-                if isDebugPreviewEnabled {
-                    Button {
-                        showDebug = true
-                    } label: {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .foregroundStyle(.tint)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                if isExporting {
-                    ProgressView()
-                } else {
-                    Button {
-                        Task {
-                            let exportID = UUID()
-                            activeExportID = exportID
-                            isExporting = true
-                            exportErrorMessage = nil
-                            exportSheetState = .preparing(exportID)
-
-                            #if DEBUG
-                                let exportStart = Date()
-                                print("Export started for workout \(workout.uuid)")
-                            #endif
-
-                            do {
-                                let url = try await healthManager.generateGeoJSON(for: workout)
-
-                                #if DEBUG
-                                    let elapsed = Date().timeIntervalSince(exportStart)
-                                    print(
-                                        "Export generated for workout \(workout.uuid) "
-                                            + "in \(String(format: "%.2f", elapsed))s"
-                                    )
-                                #endif
-
-                                if activeExportID == exportID {
-                                    exportSheetState = .sharing(ExportFile(url: url))
-                                }
-                            } catch {
-                                print("Export error: \(error.localizedDescription)")
-
-                                if activeExportID == exportID {
-                                    exportSheetState = nil
-                                    exportErrorMessage = error.localizedDescription
-                                    showError = true
-                                }
-                            }
-
-                            if activeExportID == exportID {
-                                isExporting = false
-                                activeExportID = nil
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundStyle(.tint)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.leading, 10)
-        }
-        .foregroundStyle(Color("VerveBrown"))
-        .listRowBackground(Color.white)
-        .sheet(
-            item: $exportSheetState,
-            onDismiss: {
-                activeExportID = nil
-                isExporting = false
-            },
-            content: { state in
-                switch state {
-                case .preparing:
-                    PreparingExportView()
-                case let .sharing(file):
-                    ActivityView(activityItems: [file.url])
-                }
-            }
-        )
-
-        .sheet(isPresented: $showDebug) {
-            DebugView(workout: workout, healthManager: healthManager)
-        }
-
-        .alert("Export Failed", isPresented: $showError) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(exportErrorMessage ?? "Could not export this workout.")
-        }
-    }
-
-    func formatDuration(_ duration: TimeInterval) -> String {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute]
-        formatter.unitsStyle = .abbreviated
-        return formatter.string(from: duration) ?? ""
-    }
-}
-
-// MARK: - Helper Views & Extensions
-
-/// 1. Share Sheet Wrapper
-struct ActivityView: UIViewControllerRepresentable {
-    let activityItems: [Any]
-    var applicationActivities: [UIActivity]?
-
-    func makeUIViewController(context _: Context) -> UIActivityViewController {
-        UIActivityViewController(
-            activityItems: activityItems,
-            applicationActivities: applicationActivities
-        )
-    }
-
-    func updateUIViewController(
-        _: UIActivityViewController,
-        context _: Context
-    ) {}
-}
-
-struct PreparingExportView: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .controlSize(.large)
-
-            Text("Preparing Export")
-                .font(.headline)
-
-            Text("Reading workout data...")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
-    }
-}
-
-enum ExportSheetState: Identifiable {
-    case preparing(UUID)
-    case sharing(ExportFile)
-
-    var id: String {
-        switch self {
-        case let .preparing(id):
-            return "preparing-\(id.uuidString)"
-        case let .sharing(file):
-            return "sharing-\(file.id)"
-        }
-    }
-}
-
-struct ExportFile: Identifiable {
-    let url: URL
-    /// We use the URL string itself as the unique ID
-    var id: String {
-        url.absoluteString
-    }
-}
-
-/// Extension to map Enum types to readable Strings
-extension HKWorkoutActivityType {
-    var name: String {
-        switch self {
-        case .running: return "Run"
-        case .walking: return "Walk"
-        case .hiking: return "Hike"
-        case .cycling: return "Bike"
-        case .swimming: return "Swim"
-        case .elliptical: return "Elliptical" // Often used for Crosstrainer
-        case .traditionalStrengthTraining: return "Strength Training"
-        case .functionalStrengthTraining: return "Functional Strength"
-        case .crossTraining: return "Cross Training"
-        // Common Gym/Studio types
-        case .yoga: return "Yoga"
-        case .pilates: return "Pilates"
-        case .rowing: return "Rowing"
-        case .stairClimbing: return "Stair Climber"
-        case .coreTraining: return "Core"
-        case .cooldown: return "Cooldown"
-        case .highIntensityIntervalTraining: return "HIIT"
-        case .climbing: return "Climbing"
-        // Fallback for the other ~70 types
-        default:
-            return "Workout"
-        }
     }
 }
 

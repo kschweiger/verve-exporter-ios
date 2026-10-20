@@ -33,6 +33,10 @@ The canonical GeographicLib `egm2008-5.pgm` global geoid grid is public NGA-deri
 - Do not run destructive, production, migration, training, Health data deletion, or shared-environment commands without explicit approval.
 - Do not add network upload/sync behavior without documenting authentication, privacy, and failure handling first.
 
+## Bulk export temporary files
+
+Bulk export creates an isolated `VerveBulk-<UUID>` directory under the app temporary directory. Files remain available until the native share sheet or results are dismissed. A cancelled attempt keeps its directory until its current write finishes, then removes only that directory. Abnormal process termination may leave temporary files for iOS to reclaim; no startup scan deletes other files. Synthetic batch tests write invented JSON only and clean their own directories.
+
 ## Unknowns To Confirm
 
 - Whether a future saved-HealthKit simulator integration fixture can be checked in; current in-memory fixtures contain invented values only.
