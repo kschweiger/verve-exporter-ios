@@ -5,13 +5,13 @@ Repository-local documentation is the system of record for future agents. If dur
 ## Core Documents
 
 - `../AGENTS.md`: Short agent entry point and table of contents.
-- `../ARCHITECTURE.md`: Repository layout, offline geoid interpolation/loading and HealthKit conversion, focused conformance tests, unified contract boundary, and dependency direction.
+- `../ARCHITECTURE.md`: Bulk selection/share lifecycle, repository layout, offline geoid interpolation/loading and HealthKit conversion, focused conformance tests, unified contract boundary, and dependency direction.
 - `PRINCIPLES.md`: Harness operating principles.
-- `TESTING.md`: Bulk selection/cancellation/multi-file smoke checks and safe validation commands, all-source lint for untracked Swift files, plain-location elevation regressions, public geoid vectors, route/swimming diagnostics, and device/offline smoke checks.
+- `TESTING.md`: Bulk success-only selection reset, cancellation, and multi-file smoke checks and safe validation commands, all-source lint for untracked Swift files, plain-location elevation regressions, public geoid vectors, route/swimming diagnostics, and device/offline smoke checks.
 - `SECURITY.md`: Attempt-owned bulk temporary files, secrets, HealthKit data, synthetic fixture rules, the public EGM2008 resource exception, and forbidden handling patterns.
-- `QUALITY_SCORE.md`: Sixty-four passing tests, the corrected elevation-validation gap, historical coverage, and remaining device/latency checks.
+- `QUALITY_SCORE.md`: Seventy-four passing tests, user-confirmed bulk selection reset, the corrected elevation-validation gap, historical coverage, and remaining device/latency checks.
 - `../.gitattributes`: Preserves the immutable geoid resource as binary bytes without text conversions.
-- `DECISIONS.md`: Separate-file bulk export and compact decision log, including corrected offline EGM2008 height provenance, conservative swimming derivations, palette choices, timezone, and synthetic tests.
+- `DECISIONS.md`: Success-only selection reset, separate-file bulk export, and compact decision log, including corrected offline EGM2008 height provenance, conservative swimming derivations, palette choices, timezone, and synthetic tests.
 
 ## Work Areas
 
@@ -22,7 +22,7 @@ Repository-local documentation is the system of record for future agents. If dur
 
 ## Key Project References
 
-- `product-specs/bulk-export.md`: Bulk selection, progress, failures, cancellation and temporary-file ownership.
+- `product-specs/bulk-export.md`: Bulk selection, success-only selection reset across callback ordering, progress, failures, cancellation and temporary-file ownership.
 
 - `exporter-release-changes.md`: Verve GeoJSON 1.0 handoff, acceptance requirements, and completed implementation/validation record.
 - `QUALITY_SCORE.md`: Current synthetic test evidence and historical coverage measurement, with remaining device/UI integration gaps.

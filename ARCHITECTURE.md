@@ -14,7 +14,7 @@ HarnessHub detected runtimes: none. HarnessHub v0.1 only auto-detects Python and
 - `VerveExporter/VerveExporterApp.swift`: SwiftUI app entry point.
 - `VerveExporter/ContentView.swift`: Activity browser, filtering, month sections, and bulk selection controls.
 - `VerveExporter/WorkoutRow.swift`: Workout display, individual export preparation, and the shared native share controller wrapper.
-- `VerveExporter/BulkExportModel.swift` and `BulkExportSheet.swift`: Sequential batch preparation, selection, partial failures, cancellation, and share presentation.
+- `VerveExporter/BulkExportModel.swift` and `BulkExportSheet.swift`: Sequential batch preparation, selection mode, partial failures, cancellation, and share presentation. Share success directly resets selection mode and closes presentation; pending completion identity survives file cleanup but is invalidated by a new selection action or batch.
 - `VerveExporter/ExportFileWriter.swift`: Collision-safe atomic JSON writing into an attempt-owned directory.
 - `VerveExporter/WorkoutBrowserModel.swift`: Bounded workout loading, Verve type filtering, incremental reveal, and browser loading state.
 - `VerveExporter/DebugView.swift`: JSON preview sheet that reuses the export path and shows generated output for inspection.

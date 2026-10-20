@@ -21,7 +21,7 @@ struct BulkExportSheet: View {
             .padding()
             .interactiveDismissDisabled()
         case .sharing:
-            ActivityView(activityItems: model.files)
+            ActivityView(activityItems: model.files, onCompletion: model.shareCompletionHandler(onCompletion: onClose))
         case .results:
             NavigationStack {
                 List {

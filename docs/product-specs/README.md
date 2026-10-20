@@ -15,7 +15,7 @@ Create a product spec before implementing new user-visible behavior when require
 
 ## Current Specs
 
-- `bulk-export.md`: Select loaded workouts, prepare sequentially, and share multiple JSON files with partial-failure handling.
+- `bulk-export.md`: Select loaded workouts, prepare sequentially, and share multiple JSON files with partial-failure handling and success-only selection reset.
 
 - `activity-browser.md`: Recent workout browsing, Verve type filtering, month grouping, incremental reveal, and distinct palette colors for activity and export icons.
 - `verve-geojson-format.md`: Unified core 1.0 contract and iOS offline EGM2008 elevation estimates, geometry/sample requirements, optional statistics, fixed units, and capability limits.

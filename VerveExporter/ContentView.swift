@@ -11,7 +11,6 @@ import SwiftUI
 struct ContentView: View {
     @State private var browser = WorkoutBrowserModel()
     @State private var bulk = BulkExportModel()
-    @State private var isSelecting = false
     @State private var isBulkSheetPresented = false
     @State private var bulkPresentationActive = false
     @State private var activeIndividualExports: Set<UUID> = []
@@ -85,9 +84,9 @@ struct ContentView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color("VerveLight"))
-                .modifier(BrowserRefreshModifier(isEnabled: !isSelecting, browser: browser))
+                .modifier(BrowserRefreshModifier(isEnabled: !bulk.isSelecting, browser: browser))
 
-                if isSelecting {
+                if bulk.isSelecting {
                     selectionBar
                 }
             }
@@ -127,11 +126,11 @@ struct ContentView: View {
                 Label(browser.selectedFilter.rawValue, systemImage: "line.3.horizontal.decrease")
             }
 
-            .disabled(isSelecting)
+            .disabled(bulk.isSelecting)
 
             Spacer()
 
-            if !isSelecting, browser.selectedFilter != .all {
+            if !bulk.isSelecting, browser.selectedFilter != .all {
                 Button {
                     browser.selectFilter(.all)
                 } label: {
@@ -141,12 +140,15 @@ struct ContentView: View {
                 .accessibilityLabel("Clear activity filter")
             }
 
-            Button(isSelecting ? "Cancel" : "Select") {
-                isSelecting.toggle()
-                bulk.clearSelection()
+            Button(bulk.isSelecting ? "Cancel" : "Select") {
+                if bulk.isSelecting {
+                    bulk.endSelection()
+                } else {
+                    bulk.beginSelection()
+                }
             }
             .disabled(browser.isLoading || browser.isLoadingMore || !activeIndividualExports.isEmpty
-                || (!isSelecting && browser.workouts.isEmpty))
+                || (!bulk.isSelecting && browser.workouts.isEmpty))
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
@@ -154,7 +156,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private func workoutRow(_ workout: HKWorkout) -> some View {
-        if isSelecting {
+        if bulk.isSelecting {
             Button {
                 bulk.toggle(workout)
             } label: {

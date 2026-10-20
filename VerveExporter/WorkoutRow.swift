@@ -153,12 +153,21 @@ struct WorkoutRow: View {
 struct ActivityView: UIViewControllerRepresentable {
     let activityItems: [Any]
     var applicationActivities: [UIActivity]?
+    var onCompletion: ((Bool) -> Void)?
 
     func makeUIViewController(context _: Context) -> UIActivityViewController {
-        UIActivityViewController(
+        makeActivityController()
+    }
+
+    func makeActivityController() -> UIActivityViewController {
+        let controller = UIActivityViewController(
             activityItems: activityItems,
             applicationActivities: applicationActivities
         )
+        controller.completionWithItemsHandler = { _, completed, _, error in
+            onCompletion?(completed && error == nil)
+        }
+        return controller
     }
 
     func updateUIViewController(

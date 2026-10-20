@@ -13,6 +13,7 @@ struct BulkExportFailure: Identifiable {
 final class BulkExportModel {
     enum Phase { case idle, preparing, results, sharing }
 
+    private(set) var isSelecting = false
     private(set) var selectedIDs: Set<UUID> = []
     private(set) var phase: Phase = .idle
     private(set) var completedCount = 0
@@ -21,8 +22,10 @@ final class BulkExportModel {
     private(set) var failures: [BulkExportFailure] = []
     private(set) var directory: URL?
     private(set) var setupError: String?
+    private(set) var didShareSuccessfully = false
 
     private var attemptID: UUID?
+    private var pendingShareID: UUID?
     private let export: (HKWorkout, URL) async throws -> URL
 
     init(export: @escaping (HKWorkout, URL) async throws -> URL = { workout, directory in
@@ -31,17 +34,30 @@ final class BulkExportModel {
         self.export = export
     }
 
+    func beginSelection() {
+        clearSelection()
+        isSelecting = true
+    }
+
+    func endSelection() {
+        clearSelection()
+        isSelecting = false
+    }
+
     func toggle(_ workout: HKWorkout) {
+        invalidateShareCompletion()
         if !selectedIDs.insert(workout.uuid).inserted {
             selectedIDs.remove(workout.uuid)
         }
     }
 
     func selectLoaded(_ workouts: [HKWorkout]) {
+        invalidateShareCompletion()
         selectedIDs.formUnion(workouts.map(\.uuid))
     }
 
     func clearSelection() {
+        invalidateShareCompletion()
         selectedIDs.removeAll()
     }
 
@@ -58,16 +74,8 @@ final class BulkExportModel {
         let id = UUID()
         let folder = FileManager.default.temporaryDirectory
             .appendingPathComponent("VerveBulk-\(id.uuidString)", isDirectory: true)
-        attemptID = id
-        directory = folder
-        files = []
-        failures = []
-        setupError = nil
-        completedCount = 0
-        totalCount = snapshot.count
-        phase = .preparing
         do {
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
+            try beginAttempt(id: id, folder: folder, count: snapshot.count)
         } catch {
             setupError = error.localizedDescription
             phase = .results
@@ -99,26 +107,65 @@ final class BulkExportModel {
             completedCount += 1
         }
         phase = failures.isEmpty ? .sharing : .results
+        if phase == .sharing {
+            pendingShareID = id
+        }
     }
 
     func shareSuccessfulFiles() {
         guard phase == .results, !files.isEmpty else { return }
         phase = .sharing
+        pendingShareID = attemptID
+    }
+
+    func shareCompletionHandler(onCompletion: @escaping () -> Void = {}) -> (Bool) -> Void {
+        let id = pendingShareID
+        return { [weak self] success in
+            guard let self, let id, self.pendingShareID == id else { return }
+            self.pendingShareID = nil
+            if success {
+                self.didShareSuccessfully = true
+                self.selectedIDs.removeAll()
+                self.isSelecting = false
+            }
+            onCompletion()
+        }
+    }
+
+    private func invalidateShareCompletion() {
+        pendingShareID = nil
+        didShareSuccessfully = false
     }
 
     func dismiss() {
         let wasPreparing = phase == .preparing
         let folder = directory
         attemptID = nil
+        // Sharing may complete after dismissal. Keep its token until a callback or a new user action.
         directory = nil
         phase = .idle
         files = []
         failures = []
         setupError = nil
+        didShareSuccessfully = false
         // An in-flight writer still owns its directory until prepare returns.
         if !wasPreparing, let folder {
             try? FileManager.default.removeItem(at: folder)
         }
+    }
+
+    private func beginAttempt(id: UUID, folder: URL, count: Int) throws {
+        attemptID = id
+        pendingShareID = nil
+        directory = folder
+        files = []
+        failures = []
+        setupError = nil
+        didShareSuccessfully = false
+        completedCount = 0
+        totalCount = count
+        phase = .preparing
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
     }
 
     private func finishCancelledAttempt(_ id: UUID, folder: URL) {

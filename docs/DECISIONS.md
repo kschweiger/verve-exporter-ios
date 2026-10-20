@@ -4,6 +4,15 @@ This is the compact decision log. Keep entries short. If a decision needs longer
 
 ## Entries
 
+### 2026-10-20: Leave bulk selection after a successful share
+
+Decision: Clear all selected workout UUIDs only when the native share controller reports completion without an error, exit selection mode directly in the completion callback, and explicitly close the share sheet. Completion remains valid if dismissal arrives first. Keep selection for cancellation, share errors, and preparation failures. Completion callbacks belong to one sharing attempt and are consumed once. Dismissal cleans files without invalidating a pending share callback; a new batch or manual selection change invalidates it, so a late callback cannot clear newer selections.
+
+Context: Device feedback showed selected rows remained selected after export; the user requested deselection and a return to browsing and chose success-only reset.
+
+Consequences: A successful partial-batch share clears failed selections too. Files remain available until the existing dismissal cleanup. See [bulk export](product-specs/bulk-export.md).
+
+
 ### 2026-10-20: Share selected workouts as separate JSON files
 
 Decision: Use selection within the current filter, sequential export preparation, and one native share sheet containing individual JSON files. Keep successful files after individual failures and require an explicit share action after a failure summary. Each attempt owns its temporary directory, with collision suffixes and cleanup after sharing or cancelled work finishes.
